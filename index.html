@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sales GP Calculator</title>
+<meta name="description" content="Order-level gross profit calculator for furniture manufacturing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div class="brand">
+      <h1>Sales GP Calculator</h1>
+      <span id="brandCo">Manufacturing · order profitability</span>
+    </div>
+    <div class="mast-field">
+      <span>Order</span>
+      <input id="orderId" placeholder="ORD-0001" style="width:120px">
+    </div>
+    <div class="mast-field">
+      <span>Status</span>
+      <select id="orderStatus">
+        <option>Draft</option><option>Quoted</option><option>Won</option>
+        <option>Lost</option><option>Dispatched</option><option>Closed</option>
+      </select>
+    </div>
+    <div class="conn"><span class="dot" id="connDot"></span><span id="connText">Local only</span></div>
+    <button class="btn btn-ghost btn-sm" id="btnConnect">Connect Sheets</button>
+  </div>
+</header>
+
+<main class="shell">
+
+  <!-- ================= LEFT : the working form ================= -->
+  <section>
+
+    <!-- Order & customer -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no" style="border-color:var(--ink-3);color:var(--ink-2)">·</span>
+        <div><h2>Order &amp; customer</h2><p>Who is buying, on what terms, through which channel.</p></div>
+      </div>
+      <div class="level-body">
+        <div class="grid g4">
+          <div class="f"><label for="custName">Customer</label>
+            <input id="custName" list="dlCustomers" placeholder="Start typing a saved customer"></div>
+          <div class="f"><label for="custType">Customer type</label>
+            <select id="custType">
+              <option>Corporate</option><option>Dealer</option><option>Retail</option>
+              <option>Government / GeM</option><option>PSU</option><option>Export</option><option>Project / OEM</option>
+            </select></div>
+          <div class="f"><label for="custGstin">GSTIN</label><input id="custGstin" placeholder="09ABCDE1234F1Z5"></div>
+          <div class="f"><label for="custState">Delivery state</label><input id="custState" placeholder="Uttar Pradesh"></div>
+          <div class="f"><label for="orderDate">Order date</label><input type="date" id="orderDate"></div>
+          <div class="f"><label for="deliveryDate">Promised delivery</label><input type="date" id="deliveryDate"></div>
+          <div class="f"><label for="salesperson">Salesperson</label><input id="salesperson" placeholder="Name"></div>
+          <div class="f"><label for="channel">Channel</label>
+            <select id="channel">
+              <option>Direct sales</option><option>Dealer network</option><option>GeM tender</option>
+              <option>e-Tender</option><option>Marketplace</option><option>Referral</option>
+            </select></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 1 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">1</span>
+        <div><h2>Products &amp; production cost</h2><p>What you make, what you charge, what each unit truly costs to build.</p></div>
+        <div class="level-sum"><span id="sumL1">—</span><small>Gross profit</small></div>
+      </div>
+      <div class="level-body pad0">
+        <div class="tbl-wrap">
+          <table class="lines">
+            <thead>
+              <tr>
+                <th colspan="6" class="grp" style="border-left:none">Sale</th>
+                <th colspan="7" class="grp">Cost per unit</th>
+                <th colspan="4" class="grp">Loading &amp; logistics inputs</th>
+                <th colspan="4" class="grp">Result</th>
+                <th class="grp"></th>
+              </tr>
+              <tr>
+                <th class="l">Product</th><th class="l">Category</th>
+                <th>Qty</th><th>List price</th><th>Disc %</th><th>Net value</th>
+                <th>Material</th><th>Hardware</th><th>Fabric/foam</th><th>Finishing</th>
+                <th>Labour</th><th>Packing</th><th>Other</th>
+                <th>Waste %</th><th>Inward %</th><th>CBM/unit</th><th>Kg/unit</th>
+                <th>Unit cost</th><th>Total cost</th><th>Line GP</th><th>GP %</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="lineBody"></tbody>
+          </table>
+        </div>
+        <div class="lines-foot">
+          <button class="btn btn-sm" id="btnAddLine">Add line</button>
+          <button class="btn btn-sm" id="btnClearLines">Clear all lines</button>
+          <button class="btn btn-sm" id="btnDuplicate">Duplicate last line</button>
+          <span class="stat">Qty <b id="ftQty">0</b> · Volume <b id="ftCbm">0</b> CBM · Weight <b id="ftKg">0</b> kg · Gross <b id="ftGross">0</b> · Discount <b id="ftDisc">0</b></span>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 2 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">2</span>
+        <div><h2>Order-direct costs</h2><p>Everything spent to deliver this specific order, less whatever the customer pays back.</p></div>
+        <div class="level-sum"><span id="sumL2">—</span><small>Contribution</small></div>
+      </div>
+      <div class="level-body">
+        <p class="subhead">Freight &amp; handling</p>
+        <div class="grid g4">
+          <div class="f"><label for="freightMode">Freight charged on</label>
+            <select id="freightMode">
+              <option value="cbm">Per CBM</option><option value="kg">Per kg</option>
+              <option value="unit">Per unit</option><option value="pct">% of sales value</option>
+              <option value="lumpsum">Lump sum</option>
+            </select></div>
+          <div class="f"><label for="freightRate">Freight rate</label><input type="number" id="freightRate" value="0" step="0.01"><span class="hint" id="freightCalc">—</span></div>
+          <div class="f"><label for="handling">Loading &amp; unloading</label><input type="number" id="handling" value="0"></div>
+          <div class="f"><label for="insurancePct">Transit insurance %</label><input type="number" id="insurancePct" value="0" step="0.01"></div>
+        </div>
+        <p class="subhead">Installation &amp; site</p>
+        <div class="grid g4">
+          <div class="f"><label for="installMode">Installation charged on</label>
+            <select id="installMode">
+              <option value="unit">Per unit</option><option value="lumpsum">Lump sum</option><option value="pct">% of sales value</option>
+            </select></div>
+          <div class="f"><label for="installRate">Installation rate</label><input type="number" id="installRate" value="0" step="0.01"><span class="hint" id="installCalc">—</span></div>
+          <div class="f"><label for="travel">Travel, lodging, site visits</label><input type="number" id="travel" value="0"></div>
+          <div class="f"><label for="inspection">Inspection / BIS / lab testing</label><input type="number" id="inspection" value="0"></div>
+          <div class="f"><label for="sampleCost">Sample or prototype written off</label><input type="number" id="sampleCost" value="0"></div>
+          <div class="f"><label for="specialPacking">Special / export packing</label><input type="number" id="specialPacking" value="0"></div>
+          <div class="f"><label for="otherDirect">Other direct cost</label><input type="number" id="otherDirect" value="0"></div>
+        </div>
+        <p class="subhead">Recovered from the customer — these are billed, so they count as revenue</p>
+        <div class="grid g4">
+          <div class="f"><label for="freightBilled">Freight billed</label><input type="number" id="freightBilled" value="0"></div>
+          <div class="f"><label for="installBilled">Installation billed</label><input type="number" id="installBilled" value="0"></div>
+          <div class="f"><label for="packingBilled">Packing billed</label><input type="number" id="packingBilled" value="0"></div>
+          <div class="f"><label for="otherBilled">Other charges billed</label><input type="number" id="otherBilled" value="0"></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 3 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">3</span>
+        <div><h2>Commercial &amp; financial costs</h2><p>Commission, credit, guarantees, provisions — the money this order costs you off the invoice.</p></div>
+        <div class="level-sum"><span id="sumL3">—</span><small>Net contribution</small></div>
+      </div>
+      <div class="level-body">
+        <p class="subhead">Channel</p>
+        <div class="grid g4">
+          <div class="f"><label for="commissionPct">Sales commission %</label><input type="number" id="commissionPct" value="0" step="0.01"></div>
+          <div class="f"><label for="dealerIncentivePct">Dealer / channel incentive %</label><input type="number" id="dealerIncentivePct" value="0" step="0.01"></div>
+          <div class="f"><label for="cashDiscountPct">Cash discount %</label><input type="number" id="cashDiscountPct" value="0" step="0.01"></div>
+          <div class="f"><label for="gemChargePct">Marketplace / GeM charge %</label><input type="number" id="gemChargePct" value="0" step="0.01"></div>
+        </div>
+        <p class="subhead">Working capital &amp; guarantees</p>
+        <div class="grid g4">
+          <div class="f"><label for="interestPct">Cost of funds % p.a.</label><input type="number" id="interestPct" value="11" step="0.01"></div>
+          <div class="f"><label for="creditDays">Credit period (days)</label><input type="number" id="creditDays" value="0"><span class="hint" id="creditCalc">—</span></div>
+          <div class="f"><label for="emdAmount">EMD blocked</label><input type="number" id="emdAmount" value="0"></div>
+          <div class="f"><label for="emdDays">EMD blocked for (days)</label><input type="number" id="emdDays" value="0"></div>
+          <div class="f"><label for="pbgPct">Performance guarantee % of value</label><input type="number" id="pbgPct" value="0" step="0.01"></div>
+          <div class="f"><label for="pbgChargePct">Bank BG charge % p.a.</label><input type="number" id="pbgChargePct" value="1.5" step="0.01"></div>
+          <div class="f"><label for="pbgMonths">Guarantee tenure (months)</label><input type="number" id="pbgMonths" value="0"></div>
+          <div class="f"><label for="tenderFees">Tender / portal / document fees</label><input type="number" id="tenderFees" value="0"></div>
+        </div>
+        <p class="subhead">Risk provisions</p>
+        <div class="grid g4">
+          <div class="f"><label for="warrantyPct">Warranty &amp; service %</label><input type="number" id="warrantyPct" value="0" step="0.01"></div>
+          <div class="f"><label for="ldProvisionPct">Liquidated damages %</label><input type="number" id="ldProvisionPct" value="0" step="0.01"></div>
+          <div class="f"><label for="badDebtPct">Bad-debt provision %</label><input type="number" id="badDebtPct" value="0" step="0.01"></div>
+          <div class="f"><label for="bankChargePct">Bank &amp; payment charges %</label><input type="number" id="bankChargePct" value="0" step="0.01"></div>
+          <div class="f"><label for="itcLeakage">Non-creditable GST (ITC leakage)</label><input type="number" id="itcLeakage" value="0"></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 4 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">4</span>
+        <div><h2>Overhead absorption</h2><p>This order's share of the factory and the office. Skip it and you are reading contribution, not profit.</p></div>
+        <div class="level-sum"><span id="sumL4">—</span><small>Actual GP</small></div>
+      </div>
+      <div class="level-body">
+        <div class="grid g4">
+          <div class="f"><label for="factoryOhPct">Factory overhead % of production cost</label><input type="number" id="factoryOhPct" value="0" step="0.01"></div>
+          <div class="f"><label for="adminOhPct">Administration % of sales</label><input type="number" id="adminOhPct" value="0" step="0.01"></div>
+          <div class="f"><label for="sellingOhPct">Selling &amp; marketing % of sales</label><input type="number" id="sellingOhPct" value="0" step="0.01"></div>
+          <div class="f"><label for="depreciation">Depreciation allocated</label><input type="number" id="depreciation" value="0"></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 5 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">5</span>
+        <div><h2>Tax &amp; cash realisation</h2><p>What you invoice and what actually lands in the bank. None of this changes gross profit.</p></div>
+        <div class="level-sum"><span id="sumL5">—</span><small>Net collection</small></div>
+      </div>
+      <div class="level-body">
+        <div class="grid g4">
+          <div class="f"><label for="gstTdsPct">GST TDS deducted %</label><input type="number" id="gstTdsPct" value="0" step="0.01"><span class="hint">2% for government contracts above ₹2.5 lakh</span></div>
+          <div class="f"><label for="tcsPct">TCS / income-tax TDS %</label><input type="number" id="tcsPct" value="0" step="0.01"></div>
+          <div class="f f-out"><label>GST payable</label><input id="outGst" readonly></div>
+          <div class="f f-out"><label>Invoice value including GST</label><input id="outInvoice" readonly></div>
+        </div>
+        <div class="callout" style="margin-top:14px" id="cashNote">Enter an order to see the realisation summary.</div>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- ================= RIGHT : live margin panel ================= -->
+  <aside class="panel">
+
+    <div class="readout">
+      <div class="cap">Actual gross profit on this order</div>
+      <div class="gp-figure" id="gpPct">0.0%</div>
+      <div class="gp-abs" id="gpAbs">₹0</div>
+      <div class="gp-sub" id="gpSub">on nil sales value</div>
+
+      <div class="fall" id="fall">
+        <i style="background:#8C7A5E;width:100%"></i>
+      </div>
+      <div class="fall-key">
+        <span><i style="background:#8C7A5E"></i>Production</span>
+        <span><i style="background:#6E7F8C"></i>Direct</span>
+        <span><i style="background:#8C6E7F"></i>Commercial</span>
+        <span><i style="background:#7A7A6E"></i>Overhead</span>
+        <span><i style="background:#5FCB92"></i>Profit</span>
+      </div>
+
+      <div class="verdict" id="verdict">
+        <b>Awaiting input</b><span>Add a product line to see the approval level.</span>
+      </div>
+    </div>
+
+    <div class="ladder" id="ladder"></div>
+
+    <div class="checks">
+      <h3>Target price &amp; break-even</h3>
+      <div style="padding:12px 14px">
+        <div class="grid g2" style="margin-bottom:10px">
+          <div class="f"><label for="targetGpPct">Target GP %</label><input type="number" id="targetGpPct" value="20" step="0.5"></div>
+          <div class="f f-out"><label>Break-even sales value</label><input id="outBreakeven" readonly></div>
+        </div>
+        <div class="callout" id="solverNote">Set a target to see the price you need.</div>
+      </div>
+    </div>
+
+    <div class="checks whatif">
+      <h3>What if things move against you</h3>
+      <div style="padding:12px 14px 14px">
+        <div class="slider"><label for="wDisc">Extra discount given</label><input type="range" id="wDisc" min="0" max="20" step="0.5" value="0"><output id="wDiscO">0.0 pts</output></div>
+        <div class="slider"><label for="wMat">Material cost rise</label><input type="range" id="wMat" min="0" max="30" step="1" value="0"><output id="wMatO">0%</output></div>
+        <div class="slider"><label for="wLab">Labour cost rise</label><input type="range" id="wLab" min="0" max="30" step="1" value="0"><output id="wLabO">0%</output></div>
+        <div class="slider"><label for="wFrt">Freight rate rise</label><input type="range" id="wFrt" min="0" max="50" step="5" value="0"><output id="wFrtO">0%</output></div>
+        <div class="whatif-out">
+          <div><span>Stressed GP %</span><b id="wGpPct">—</b></div>
+          <div><span>Stressed GP</span><b id="wGpAbs">—</b></div>
+          <div><span>Change</span><b id="wDelta">—</b></div>
+        </div>
+        <button class="btn btn-sm" id="btnResetWhatif" style="margin-top:10px">Reset sliders</button>
+      </div>
+    </div>
+
+    <div class="checks">
+      <h3>Checks</h3>
+      <div id="checkList"></div>
+    </div>
+
+  </aside>
+</main>
+
+<div class="actionbar">
+  <button class="btn btn-primary" id="btnSave">Save to Google Sheets</button>
+  <button class="btn" id="btnNew">New order</button>
+  <button class="btn" id="btnLoad">Load order</button>
+  <button class="btn" id="btnExport">Download JSON</button>
+  <button class="btn" id="btnPrint">Print sheet</button>
+  <span class="grow"><span class="live">Actual GP <b id="barGp">—</b> · Sales value <b id="barNsv">—</b> · <span id="barVerdict">—</span></span></span>
+</div>
+
+<datalist id="dlCustomers"></datalist>
+<datalist id="dlProducts"></datalist>
+<div class="toast" id="toast"></div>
+
+<script src="assets/engine.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/sheets.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

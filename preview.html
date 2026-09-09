@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sales GP Calculator</title>
+<meta name="description" content="Order-level gross profit calculator for furniture manufacturing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Sales GP Calculator — bark, paper, brass ========================== */
+:root{
+  --bark:#231F1A; --bark-2:#332D25; --bark-3:#4A4238;
+  --surface:#F2F1ED; --card:#FBFAF8; --sunken:#EAE8E2;
+  --rule:#D9D5CC; --rule-2:#C4BEB2;
+  --ink:#1C1A16; --ink-2:#6B655B; --ink-3:#948D80;
+  --brass:#A87B2E; --brass-lo:#F0E6D2; --brass-hi:#C79A45;
+  --good:#1E7A4C; --good-bg:#E4F0E8;
+  --watch:#B0731A; --watch-bg:#FAEEDB;
+  --risk:#AE2B22; --risk-bg:#F9E5E3;
+  --r:3px; --shadow:0 1px 2px rgba(35,31,26,.08);
+  --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--surface);color:var(--ink);
+  font:400 14px/1.5 var(--sans);font-variant-numeric:tabular-nums;
+}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+/* ---------- masthead ---------- */
+.masthead{
+  position:sticky;top:0;z-index:60;background:var(--bark);color:#EFEAE1;
+  border-bottom:3px solid var(--brass);
+}
+.masthead-in{
+  max-width:1480px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand h1{font-size:16px;letter-spacing:.01em}
+.brand span{font-size:12px;color:#A79C8B}
+.mast-field{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#B8AE9D}
+.mast-field input,.mast-field select{
+  background:var(--bark-2);border:1px solid var(--bark-3);color:#F3EEE5;
+  border-radius:var(--r);padding:5px 8px;font-size:12.5px;min-width:0;
+}
+.mast-field input{width:150px}
+.conn{display:flex;align-items:center;gap:6px;font-size:12px;color:#A79C8B}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ink-3);flex:none}
+.dot.on{background:#4FBF84}.dot.off{background:#C9705F}
+
+/* ---------- buttons ---------- */
+.btn{
+  border:1px solid var(--rule-2);background:var(--card);border-radius:var(--r);
+  padding:8px 14px;cursor:pointer;font-size:13px;font-weight:500;
+  transition:background .12s,border-color .12s;
+}
+.btn:hover{background:var(--sunken)}
+.btn-primary{background:var(--brass);border-color:var(--brass);color:#fff}
+.btn-primary:hover{background:var(--brass-hi)}
+.btn-ghost{background:transparent;border-color:var(--bark-3);color:#E4DCCF}
+.btn-ghost:hover{background:var(--bark-2)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- shell ---------- */
+.shell{max-width:1480px;margin:0 auto;padding:22px 24px 90px;
+  display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:24px;align-items:start}
+
+/* ---------- level blocks ---------- */
+.level{background:var(--card);border:1px solid var(--rule);border-radius:var(--r);
+  margin-bottom:16px;box-shadow:var(--shadow);overflow:hidden}
+.level-head{display:flex;align-items:center;gap:12px;padding:13px 18px;
+  border-bottom:1px solid var(--rule);background:linear-gradient(var(--card),var(--sunken))}
+.level-no{width:24px;height:24px;flex:none;border:1px solid var(--brass);color:var(--brass);
+  border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600}
+.level-head h2{font-size:14.5px}
+.level-head p{margin:1px 0 0;font-size:12px;color:var(--ink-2)}
+.level-sum{margin-left:auto;font-family:var(--mono);font-size:13px;font-weight:500;text-align:right}
+.level-sum small{display:block;font-family:var(--sans);font-size:11px;color:var(--ink-2);font-weight:400}
+.level-body{padding:16px 18px}
+.level-body.pad0{padding:0}
+
+/* ---------- form grid ---------- */
+.grid{display:grid;gap:12px 14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f label{font-size:11.5px;color:var(--ink-2)}
+.f input,.f select{
+  border:1px solid var(--rule-2);border-radius:var(--r);padding:7px 9px;
+  background:#fff;width:100%;font-size:13px;
+}
+.f input[type=number]{font-family:var(--mono);text-align:right}
+.f input:hover,.f select:hover{border-color:var(--ink-3)}
+.f .hint{font-size:11px;color:var(--ink-3)}
+.f-out input{background:var(--sunken);color:var(--ink-2)}
+.split{display:grid;grid-template-columns:1fr 96px;gap:6px}
+.subhead{font-size:11.5px;font-weight:600;color:var(--ink-2);
+  padding-bottom:5px;margin:4px 0 10px;border-bottom:1px solid var(--rule)}
+.subhead:not(:first-child){margin-top:20px}
+
+/* ---------- line-item table ---------- */
+.tbl-wrap{overflow-x:auto}
+table.lines{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1560px}
+table.lines th{
+  text-align:right;font-weight:600;font-size:11px;color:var(--ink-2);
+  padding:9px 7px;border-bottom:1px solid var(--rule-2);background:var(--sunken);
+  position:sticky;top:0;white-space:nowrap;
+}
+table.lines th:first-child,table.lines th.l{text-align:left}
+table.lines td{padding:3px 4px;border-bottom:1px solid var(--rule);vertical-align:middle}
+table.lines tbody tr:hover{background:#FDFCFA}
+table.lines input,table.lines select{
+  border:1px solid transparent;background:transparent;border-radius:2px;
+  padding:5px 6px;width:100%;font-size:12.5px;
+}
+table.lines input:hover,table.lines select:hover{border-color:var(--rule-2);background:#fff}
+table.lines input:focus,table.lines select:focus{background:#fff;border-color:var(--brass)}
+table.lines input[type=number]{font-family:var(--mono);text-align:right;appearance:textfield;-moz-appearance:textfield}
+table.lines input[type=number]::-webkit-outer-spin-button,
+table.lines input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.cell-out{font-family:var(--mono);text-align:right;padding-right:8px!important;white-space:nowrap}
+.grp{background:var(--sunken)!important;font-size:10.5px!important;
+  color:var(--ink-2)!important;text-align:center!important;border-left:1px solid var(--rule-2)}
+.w-xs,.w-s,.w-m,.w-l{width:100%}
+/* the generic `table.lines input` rule wins on specificity, so size the column,
+   not the input */
+table.lines thead tr:last-child th:nth-child(1){min-width:206px}
+table.lines thead tr:last-child th:nth-child(2){min-width:124px}
+table.lines thead tr:last-child th:nth-child(n+3):nth-child(-n+5){min-width:70px}
+table.lines thead tr:last-child th:nth-child(6){min-width:98px}
+table.lines thead tr:last-child th:nth-child(n+7):nth-child(-n+13){min-width:82px}
+table.lines thead tr:last-child th:nth-child(n+14):nth-child(-n+17){min-width:70px}
+table.lines thead tr:last-child th:nth-child(n+18):nth-child(-n+21){min-width:96px}
+.x-btn{border:none;background:none;color:var(--ink-3);cursor:pointer;
+  font-size:16px;line-height:1;padding:4px 7px;border-radius:2px}
+.x-btn:hover{color:var(--risk);background:var(--risk-bg)}
+tr.under td{background:var(--risk-bg)}
+.lines-foot{display:flex;gap:10px;align-items:center;padding:12px 18px;
+  border-top:1px solid var(--rule);background:var(--sunken);flex-wrap:wrap}
+.lines-foot .stat{font-size:12px;color:var(--ink-2);margin-left:auto}
+.lines-foot .stat b{font-family:var(--mono);color:var(--ink);font-weight:500}
+
+/* ---------- margin panel (the hero) ---------- */
+.panel{position:sticky;top:70px}
+.readout{background:var(--bark);color:#F2EDE4;border-radius:var(--r);
+  padding:20px;border-top:3px solid var(--brass)}
+.readout .cap{font-size:11.5px;color:#A79C8B;margin-bottom:2px}
+.gp-figure{
+  font-family:var(--mono);font-size:56px;line-height:.98;font-weight:500;
+  letter-spacing:-.03em;transition:color .35s ease;color:#F2EDE4;
+}
+.gp-figure.good{color:#5FCB92}.gp-figure.watch{color:#E8B457}.gp-figure.risk{color:#F08A7C}
+.gp-abs{font-family:var(--mono);font-size:19px;margin-top:6px;color:#D9D0C1}
+.gp-sub{font-size:12px;color:#A79C8B;margin-top:3px}
+.verdict{margin-top:16px;padding:11px 13px;border-radius:var(--r);
+  background:var(--bark-2);border-left:3px solid var(--ink-3);font-size:12.5px}
+.verdict.good{border-left-color:#4FBF84}
+.verdict.watch{border-left-color:#E8B457}
+.verdict.risk{border-left-color:#F08A7C}
+.verdict b{display:block;font-size:13px;margin-bottom:1px;color:#F2EDE4}
+.verdict span{color:#A79C8B}
+
+/* waterfall */
+.fall{margin-top:14px;display:flex;height:9px;border-radius:2px;overflow:hidden;background:var(--bark-2)}
+.fall i{display:block;height:100%}
+.fall-key{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:11px;color:#A79C8B}
+.fall-key span{display:flex;align-items:center;gap:5px}
+.fall-key i{width:8px;height:8px;border-radius:1px;flex:none}
+
+/* ladder */
+.ladder{background:var(--card);border:1px solid var(--rule);border-top:none;
+  border-radius:0 0 var(--r) var(--r)}
+.rung{display:flex;justify-content:space-between;gap:10px;padding:7px 16px;
+  font-size:12.5px;border-bottom:1px solid var(--rule)}
+.rung:last-child{border-bottom:none}
+.rung .v{font-family:var(--mono);white-space:nowrap}
+.rung.minor{color:var(--ink-2);padding-left:28px;font-size:12px}
+.rung.step{font-weight:600;background:var(--sunken)}
+.rung.total{font-weight:600;background:var(--brass-lo);border-top:1px solid var(--brass)}
+.rung .pc{color:var(--ink-3);font-size:11px;margin-left:6px}
+
+/* checks */
+.checks{margin-top:16px;background:var(--card);border:1px solid var(--rule);border-radius:var(--r)}
+.checks h3{font-size:12.5px;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--sunken)}
+.check{display:flex;gap:9px;padding:9px 14px;font-size:12px;border-bottom:1px solid var(--rule)}
+.check:last-child{border-bottom:none}
+.check i{width:5px;border-radius:3px;flex:none;background:var(--ink-3)}
+.check.error i{background:var(--risk)}.check.warn i{background:var(--watch)}.check.info i{background:var(--brass)}
+.check.ok{color:var(--good)}
+
+/* ---------- what-if ---------- */
+.whatif{padding:4px 0}
+.slider{display:grid;grid-template-columns:132px minmax(0,1fr) 60px;gap:10px;align-items:center;margin-bottom:11px}
+.slider label{font-size:12px;color:var(--ink-2)}
+.slider input[type=range]{width:100%;accent-color:var(--brass)}
+.slider output{font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink)}
+.whatif-out{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;margin-top:6px}
+.whatif-out div{background:var(--card);padding:10px 12px}
+.whatif-out span{display:block;font-size:11px;color:var(--ink-2)}
+.whatif-out b{font-family:var(--mono);font-size:16px;font-weight:500}
+
+/* ---------- misc ---------- */
+.callout{background:var(--brass-lo);border:1px solid var(--brass);border-radius:var(--r);
+  padding:12px 14px;font-size:12.5px;line-height:1.55}
+.callout b{font-family:var(--mono)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(120%);
+  background:var(--bark);color:#F2EDE4;padding:11px 18px;border-radius:var(--r);
+  font-size:13px;box-shadow:0 6px 20px rgba(35,31,26,.28);z-index:200;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:transform .28s cubic-bezier(.2,.9,.3,1),opacity .2s;max-width:min(90vw,520px)}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible}
+.toast.err{background:var(--risk)}
+.pos{color:var(--good)}.neg{color:var(--risk)}
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:55;background:var(--card);
+  border-top:1px solid var(--rule-2);padding:10px 24px;display:flex;gap:10px;align-items:center;
+  box-shadow:0 -2px 10px rgba(35,31,26,.06)}
+.actionbar .grow{margin-left:auto;display:flex;gap:10px}
+.actionbar .live{font-size:12.5px;color:var(--ink-2)}
+.actionbar .live b{font-family:var(--mono);color:var(--ink)}
+
+@media (max-width:1180px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .panel{position:static}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  .shell{padding:16px 12px 96px}
+  .masthead-in{padding:10px 12px;gap:12px}
+  .brand{width:100%;gap:8px}
+  .brand h1{font-size:15px}
+  .brand span{display:none}
+  .actionbar .btn{flex:1 1 auto;padding:8px 10px}
+  .actionbar .grow{width:100%;margin-left:0}
+  .g2,.g3,.g4{grid-template-columns:minmax(0,1fr)}
+  .gp-figure{font-size:46px}
+  .actionbar{padding:10px 12px;flex-wrap:wrap}
+  .whatif-out{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+@media print{
+  .masthead,.actionbar,.whatif,.x-btn,.lines-foot .btn{display:none}
+  body{background:#fff}.shell{grid-template-columns:1fr}
+  .readout{background:#fff;color:#000;border:1px solid #000}
+  .gp-figure{color:#000!important}
+}
+
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div class="brand">
+      <h1>Sales GP Calculator</h1>
+      <span id="brandCo">Manufacturing · order profitability</span>
+    </div>
+    <div class="mast-field">
+      <span>Order</span>
+      <input id="orderId" placeholder="ORD-0001" style="width:120px">
+    </div>
+    <div class="mast-field">
+      <span>Status</span>
+      <select id="orderStatus">
+        <option>Draft</option><option>Quoted</option><option>Won</option>
+        <option>Lost</option><option>Dispatched</option><option>Closed</option>
+      </select>
+    </div>
+    <div class="conn"><span class="dot" id="connDot"></span><span id="connText">Local only</span></div>
+    <button class="btn btn-ghost btn-sm" id="btnConnect">Connect Sheets</button>
+  </div>
+</header>
+
+<main class="shell">
+
+  <!-- ================= LEFT : the working form ================= -->
+  <section>
+
+    <!-- Order & customer -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no" style="border-color:var(--ink-3);color:var(--ink-2)">·</span>
+        <div><h2>Order &amp; customer</h2><p>Who is buying, on what terms, through which channel.</p></div>
+      </div>
+      <div class="level-body">
+        <div class="grid g4">
+          <div class="f"><label for="custName">Customer</label>
+            <input id="custName" list="dlCustomers" placeholder="Start typing a saved customer"></div>
+          <div class="f"><label for="custType">Customer type</label>
+            <select id="custType">
+              <option>Corporate</option><option>Dealer</option><option>Retail</option>
+              <option>Government / GeM</option><option>PSU</option><option>Export</option><option>Project / OEM</option>
+            </select></div>
+          <div class="f"><label for="custGstin">GSTIN</label><input id="custGstin" placeholder="09ABCDE1234F1Z5"></div>
+          <div class="f"><label for="custState">Delivery state</label><input id="custState" placeholder="Uttar Pradesh"></div>
+          <div class="f"><label for="orderDate">Order date</label><input type="date" id="orderDate"></div>
+          <div class="f"><label for="deliveryDate">Promised delivery</label><input type="date" id="deliveryDate"></div>
+          <div class="f"><label for="salesperson">Salesperson</label><input id="salesperson" placeholder="Name"></div>
+          <div class="f"><label for="channel">Channel</label>
+            <select id="channel">
+              <option>Direct sales</option><option>Dealer network</option><option>GeM tender</option>
+              <option>e-Tender</option><option>Marketplace</option><option>Referral</option>
+            </select></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 1 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">1</span>
+        <div><h2>Products &amp; production cost</h2><p>What you make, what you charge, what each unit truly costs to build.</p></div>
+        <div class="level-sum"><span id="sumL1">—</span><small>Gross profit</small></div>
+      </div>
+      <div class="level-body pad0">
+        <div class="tbl-wrap">
+          <table class="lines">
+            <thead>
+              <tr>
+                <th colspan="6" class="grp" style="border-left:none">Sale</th>
+                <th colspan="7" class="grp">Cost per unit</th>
+                <th colspan="4" class="grp">Loading &amp; logistics inputs</th>
+                <th colspan="4" class="grp">Result</th>
+                <th class="grp"></th>
+              </tr>
+              <tr>
+                <th class="l">Product</th><th class="l">Category</th>
+                <th>Qty</th><th>List price</th><th>Disc %</th><th>Net value</th>
+                <th>Material</th><th>Hardware</th><th>Fabric/foam</th><th>Finishing</th>
+                <th>Labour</th><th>Packing</th><th>Other</th>
+                <th>Waste %</th><th>Inward %</th><th>CBM/unit</th><th>Kg/unit</th>
+                <th>Unit cost</th><th>Total cost</th><th>Line GP</th><th>GP %</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="lineBody"></tbody>
+          </table>
+        </div>
+        <div class="lines-foot">
+          <button class="btn btn-sm" id="btnAddLine">Add line</button>
+          <button class="btn btn-sm" id="btnClearLines">Clear all lines</button>
+          <button class="btn btn-sm" id="btnDuplicate">Duplicate last line</button>
+          <span class="stat">Qty <b id="ftQty">0</b> · Volume <b id="ftCbm">0</b> CBM · Weight <b id="ftKg">0</b> kg · Gross <b id="ftGross">0</b> · Discount <b id="ftDisc">0</b></span>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 2 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">2</span>
+        <div><h2>Order-direct costs</h2><p>Everything spent to deliver this specific order, less whatever the customer pays back.</p></div>
+        <div class="level-sum"><span id="sumL2">—</span><small>Contribution</small></div>
+      </div>
+      <div class="level-body">
+        <p class="subhead">Freight &amp; handling</p>
+        <div class="grid g4">
+          <div class="f"><label for="freightMode">Freight charged on</label>
+            <select id="freightMode">
+              <option value="cbm">Per CBM</option><option value="kg">Per kg</option>
+              <option value="unit">Per unit</option><option value="pct">% of sales value</option>
+              <option value="lumpsum">Lump sum</option>
+            </select></div>
+          <div class="f"><label for="freightRate">Freight rate</label><input type="number" id="freightRate" value="0" step="0.01"><span class="hint" id="freightCalc">—</span></div>
+          <div class="f"><label for="handling">Loading &amp; unloading</label><input type="number" id="handling" value="0"></div>
+          <div class="f"><label for="insurancePct">Transit insurance %</label><input type="number" id="insurancePct" value="0" step="0.01"></div>
+        </div>
+        <p class="subhead">Installation &amp; site</p>
+        <div class="grid g4">
+          <div class="f"><label for="installMode">Installation charged on</label>
+            <select id="installMode">
+              <option value="unit">Per unit</option><option value="lumpsum">Lump sum</option><option value="pct">% of sales value</option>
+            </select></div>
+          <div class="f"><label for="installRate">Installation rate</label><input type="number" id="installRate" value="0" step="0.01"><span class="hint" id="installCalc">—</span></div>
+          <div class="f"><label for="travel">Travel, lodging, site visits</label><input type="number" id="travel" value="0"></div>
+          <div class="f"><label for="inspection">Inspection / BIS / lab testing</label><input type="number" id="inspection" value="0"></div>
+          <div class="f"><label for="sampleCost">Sample or prototype written off</label><input type="number" id="sampleCost" value="0"></div>
+          <div class="f"><label for="specialPacking">Special / export packing</label><input type="number" id="specialPacking" value="0"></div>
+          <div class="f"><label for="otherDirect">Other direct cost</label><input type="number" id="otherDirect" value="0"></div>
+        </div>
+        <p class="subhead">Recovered from the customer — these are billed, so they count as revenue</p>
+        <div class="grid g4">
+          <div class="f"><label for="freightBilled">Freight billed</label><input type="number" id="freightBilled" value="0"></div>
+          <div class="f"><label for="installBilled">Installation billed</label><input type="number" id="installBilled" value="0"></div>
+          <div class="f"><label for="packingBilled">Packing billed</label><input type="number" id="packingBilled" value="0"></div>
+          <div class="f"><label for="otherBilled">Other charges billed</label><input type="number" id="otherBilled" value="0"></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 3 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">3</span>
+        <div><h2>Commercial &amp; financial costs</h2><p>Commission, credit, guarantees, provisions — the money this order costs you off the invoice.</p></div>
+        <div class="level-sum"><span id="sumL3">—</span><small>Net contribution</small></div>
+      </div>
+      <div class="level-body">
+        <p class="subhead">Channel</p>
+        <div class="grid g4">
+          <div class="f"><label for="commissionPct">Sales commission %</label><input type="number" id="commissionPct" value="0" step="0.01"></div>
+          <div class="f"><label for="dealerIncentivePct">Dealer / channel incentive %</label><input type="number" id="dealerIncentivePct" value="0" step="0.01"></div>
+          <div class="f"><label for="cashDiscountPct">Cash discount %</label><input type="number" id="cashDiscountPct" value="0" step="0.01"></div>
+          <div class="f"><label for="gemChargePct">Marketplace / GeM charge %</label><input type="number" id="gemChargePct" value="0" step="0.01"></div>
+        </div>
+        <p class="subhead">Working capital &amp; guarantees</p>
+        <div class="grid g4">
+          <div class="f"><label for="interestPct">Cost of funds % p.a.</label><input type="number" id="interestPct" value="11" step="0.01"></div>
+          <div class="f"><label for="creditDays">Credit period (days)</label><input type="number" id="creditDays" value="0"><span class="hint" id="creditCalc">—</span></div>
+          <div class="f"><label for="emdAmount">EMD blocked</label><input type="number" id="emdAmount" value="0"></div>
+          <div class="f"><label for="emdDays">EMD blocked for (days)</label><input type="number" id="emdDays" value="0"></div>
+          <div class="f"><label for="pbgPct">Performance guarantee % of value</label><input type="number" id="pbgPct" value="0" step="0.01"></div>
+          <div class="f"><label for="pbgChargePct">Bank BG charge % p.a.</label><input type="number" id="pbgChargePct" value="1.5" step="0.01"></div>
+          <div class="f"><label for="pbgMonths">Guarantee tenure (months)</label><input type="number" id="pbgMonths" value="0"></div>
+          <div class="f"><label for="tenderFees">Tender / portal / document fees</label><input type="number" id="tenderFees" value="0"></div>
+        </div>
+        <p class="subhead">Risk provisions</p>
+        <div class="grid g4">
+          <div class="f"><label for="warrantyPct">Warranty &amp; service %</label><input type="number" id="warrantyPct" value="0" step="0.01"></div>
+          <div class="f"><label for="ldProvisionPct">Liquidated damages %</label><input type="number" id="ldProvisionPct" value="0" step="0.01"></div>
+          <div class="f"><label for="badDebtPct">Bad-debt provision %</label><input type="number" id="badDebtPct" value="0" step="0.01"></div>
+          <div class="f"><label for="bankChargePct">Bank &amp; payment charges %</label><input type="number" id="bankChargePct" value="0" step="0.01"></div>
+          <div class="f"><label for="itcLeakage">Non-creditable GST (ITC leakage)</label><input type="number" id="itcLeakage" value="0"></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 4 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">4</span>
+        <div><h2>Overhead absorption</h2><p>This order's share of the factory and the office. Skip it and you are reading contribution, not profit.</p></div>
+        <div class="level-sum"><span id="sumL4">—</span><small>Actual GP</small></div>
+      </div>
+      <div class="level-body">
+        <div class="grid g4">
+          <div class="f"><label for="factoryOhPct">Factory overhead % of production cost</label><input type="number" id="factoryOhPct" value="0" step="0.01"></div>
+          <div class="f"><label for="adminOhPct">Administration % of sales</label><input type="number" id="adminOhPct" value="0" step="0.01"></div>
+          <div class="f"><label for="sellingOhPct">Selling &amp; marketing % of sales</label><input type="number" id="sellingOhPct" value="0" step="0.01"></div>
+          <div class="f"><label for="depreciation">Depreciation allocated</label><input type="number" id="depreciation" value="0"></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- LEVEL 5 -->
+    <article class="level">
+      <div class="level-head">
+        <span class="level-no">5</span>
+        <div><h2>Tax &amp; cash realisation</h2><p>What you invoice and what actually lands in the bank. None of this changes gross profit.</p></div>
+        <div class="level-sum"><span id="sumL5">—</span><small>Net collection</small></div>
+      </div>
+      <div class="level-body">
+        <div class="grid g4">
+          <div class="f"><label for="gstTdsPct">GST TDS deducted %</label><input type="number" id="gstTdsPct" value="0" step="0.01"><span class="hint">2% for government contracts above ₹2.5 lakh</span></div>
+          <div class="f"><label for="tcsPct">TCS / income-tax TDS %</label><input type="number" id="tcsPct" value="0" step="0.01"></div>
+          <div class="f f-out"><label>GST payable</label><input id="outGst" readonly></div>
+          <div class="f f-out"><label>Invoice value including GST</label><input id="outInvoice" readonly></div>
+        </div>
+        <div class="callout" style="margin-top:14px" id="cashNote">Enter an order to see the realisation summary.</div>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- ================= RIGHT : live margin panel ================= -->
+  <aside class="panel">
+
+    <div class="readout">
+      <div class="cap">Actual gross profit on this order</div>
+      <div class="gp-figure" id="gpPct">0.0%</div>
+      <div class="gp-abs" id="gpAbs">₹0</div>
+      <div class="gp-sub" id="gpSub">on nil sales value</div>
+
+      <div class="fall" id="fall">
+        <i style="background:#8C7A5E;width:100%"></i>
+      </div>
+      <div class="fall-key">
+        <span><i style="background:#8C7A5E"></i>Production</span>
+        <span><i style="background:#6E7F8C"></i>Direct</span>
+        <span><i style="background:#8C6E7F"></i>Commercial</span>
+        <span><i style="background:#7A7A6E"></i>Overhead</span>
+        <span><i style="background:#5FCB92"></i>Profit</span>
+      </div>
+
+      <div class="verdict" id="verdict">
+        <b>Awaiting input</b><span>Add a product line to see the approval level.</span>
+      </div>
+    </div>
+
+    <div class="ladder" id="ladder"></div>
+
+    <div class="checks">
+      <h3>Target price &amp; break-even</h3>
+      <div style="padding:12px 14px">
+        <div class="grid g2" style="margin-bottom:10px">
+          <div class="f"><label for="targetGpPct">Target GP %</label><input type="number" id="targetGpPct" value="20" step="0.5"></div>
+          <div class="f f-out"><label>Break-even sales value</label><input id="outBreakeven" readonly></div>
+        </div>
+        <div class="callout" id="solverNote">Set a target to see the price you need.</div>
+      </div>
+    </div>
+
+    <div class="checks whatif">
+      <h3>What if things move against you</h3>
+      <div style="padding:12px 14px 14px">
+        <div class="slider"><label for="wDisc">Extra discount given</label><input type="range" id="wDisc" min="0" max="20" step="0.5" value="0"><output id="wDiscO">0.0 pts</output></div>
+        <div class="slider"><label for="wMat">Material cost rise</label><input type="range" id="wMat" min="0" max="30" step="1" value="0"><output id="wMatO">0%</output></div>
+        <div class="slider"><label for="wLab">Labour cost rise</label><input type="range" id="wLab" min="0" max="30" step="1" value="0"><output id="wLabO">0%</output></div>
+        <div class="slider"><label for="wFrt">Freight rate rise</label><input type="range" id="wFrt" min="0" max="50" step="5" value="0"><output id="wFrtO">0%</output></div>
+        <div class="whatif-out">
+          <div><span>Stressed GP %</span><b id="wGpPct">—</b></div>
+          <div><span>Stressed GP</span><b id="wGpAbs">—</b></div>
+          <div><span>Change</span><b id="wDelta">—</b></div>
+        </div>
+        <button class="btn btn-sm" id="btnResetWhatif" style="margin-top:10px">Reset sliders</button>
+      </div>
+    </div>
+
+    <div class="checks">
+      <h3>Checks</h3>
+      <div id="checkList"></div>
+    </div>
+
+  </aside>
+</main>
+
+<div class="actionbar">
+  <button class="btn btn-primary" id="btnSave">Save to Google Sheets</button>
+  <button class="btn" id="btnNew">New order</button>
+  <button class="btn" id="btnLoad">Load order</button>
+  <button class="btn" id="btnExport">Download JSON</button>
+  <button class="btn" id="btnPrint">Print sheet</button>
+  <span class="grow"><span class="live">Actual GP <b id="barGp">—</b> · Sales value <b id="barNsv">—</b> · <span id="barVerdict">—</span></span></span>
+</div>
+
+<datalist id="dlCustomers"></datalist>
+<datalist id="dlProducts"></datalist>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===========================================================================
+   Sales GP Engine  v1.0
+   Pure, dependency-free calculation core. No DOM, no network.
+   Five calculation levels:
+     L1  Production      -> Gross Profit
+     L2  Order-direct    -> Contribution
+     L3  Commercial      -> Net Contribution
+     L4  Overhead        -> ACTUAL GP
+     L5  Tax & cash      -> Invoice value, realisation (excluded from GP)
+   =========================================================================== */
+(function (root) {
+  'use strict';
+
+  /* ---------- helpers ---------------------------------------------------- */
+  var num = function (v) { var x = parseFloat(v); return isFinite(x) ? x : 0; };
+  var rate = function (v) { return num(v) / 100; };            // 12.5 -> 0.125
+  var div = function (a, b) { return b ? a / b : 0; };
+  var r2 = function (v) { return Math.round((num(v) + Number.EPSILON) * 100) / 100; };
+
+  /* ---------- L1 : one order line ---------------------------------------- */
+  function computeLine(l) {
+    var qty = num(l.qty);
+    var list = num(l.listPrice);
+    var gross = qty * list;
+    var discPct = rate(l.discPct);
+    var discAmt = gross * discPct;
+    var netRev = gross - discAmt;
+    var unitNet = div(netRev, qty);
+
+    // material family (subject to wastage + inward freight)
+    var matBase = num(l.cMaterial) + num(l.cHardware) + num(l.cUpholstery) + num(l.cFinishing);
+    var wastage = matBase * rate(l.wastagePct);
+    var inward = (matBase + wastage) * rate(l.inwardFreightPct);
+    // conversion family (not subject to wastage)
+    var conv = num(l.cLabour) + num(l.cPacking) + num(l.cOther);
+
+    var unitCogs = matBase + wastage + inward + conv;
+    var cogs = unitCogs * qty;
+
+    var gp = netRev - cogs;
+
+    return {
+      qty: qty,
+      grossValue: gross,
+      discountAmt: discAmt,
+      netRevenue: netRev,
+      unitNetPrice: unitNet,
+      unitMaterial: matBase + wastage + inward,
+      unitConversion: conv,
+      unitCogs: unitCogs,
+      cogs: cogs,
+      gp: gp,
+      gpPct: div(gp, netRev) * 100,
+      markupPct: div(gp, cogs) * 100,
+      cbm: num(l.cbmPerUnit) * qty,
+      weight: num(l.weightPerUnit) * qty,
+      gstPct: num(l.gstPct),
+      gstAmt: netRev * rate(l.gstPct),
+      belowCost: qty > 0 && unitNet < unitCogs
+    };
+  }
+
+  /* ---------- L2 : order-direct cost heads -------------------------------- */
+  function basisAmount(mode, rateVal, ctx) {
+    switch (mode) {
+      case 'cbm': return num(rateVal) * ctx.cbm;
+      case 'kg': return num(rateVal) * ctx.weight;
+      case 'unit': return num(rateVal) * ctx.qty;
+      case 'pct': return rate(rateVal) * ctx.revenue;
+      case 'lumpsum':
+      default: return num(rateVal);
+    }
+  }
+
+  /* ---------- main ------------------------------------------------------- */
+  function compute(order) {
+    var o = order || {};
+    var L2 = o.l2 || {}, L3 = o.l3 || {}, L4 = o.l4 || {}, TX = o.tax || {}, RC = o.recovery || {};
+
+    /* ---- L1 roll-up ---- */
+    var lines = (o.lines || []).map(computeLine);
+    var t = { gross: 0, disc: 0, net: 0, cogs: 0, qty: 0, cbm: 0, weight: 0, gst: 0, maxGst: 0 };
+    lines.forEach(function (r) {
+      t.gross += r.grossValue; t.disc += r.discountAmt; t.net += r.netRevenue;
+      t.cogs += r.cogs; t.qty += r.qty; t.cbm += r.cbm; t.weight += r.weight;
+      t.gst += r.gstAmt; t.maxGst = Math.max(t.maxGst, r.gstPct);
+    });
+
+    /* ---- revenue recoveries (billed to customer, so they ARE revenue) ---- */
+    var recFreight = num(RC.freightBilled),
+        recInstall = num(RC.installBilled),
+        recPacking = num(RC.packingBilled),
+        recOther = num(RC.otherBilled);
+    var recovery = recFreight + recInstall + recPacking + recOther;
+
+    // Net Sales Value, excl. GST — the single denominator for every margin %
+    var NSV = t.net + recovery;
+    var ctx = { cbm: t.cbm, weight: t.weight, qty: t.qty, revenue: NSV };
+
+    /* ---- L1 result ---- */
+    var grossProfit = NSV - t.cogs;
+
+    /* ---- L2 heads ---- */
+    var h2 = [];
+    var push = function (arr, label, amt, ofRev) {
+      if (Math.abs(amt) > 0.004) arr.push({ label: label, amount: amt, ofRevenue: !!ofRev });
+    };
+    var outFreight = basisAmount(L2.freightMode, L2.freightRate, ctx);
+    var install = basisAmount(L2.installMode, L2.installRate, ctx);
+    var insurance = rate(L2.insurancePct) * NSV;
+
+    push(h2, 'Outward freight & transport', outFreight, L2.freightMode === 'pct');
+    push(h2, 'Loading, unloading & handling', num(L2.handling));
+    push(h2, 'Transit insurance', insurance, true);
+    push(h2, 'Installation & assembly', install, L2.installMode === 'pct');
+    push(h2, 'Site visits, travel & lodging', num(L2.travel));
+    push(h2, 'Sample / prototype written off', num(L2.sampleCost));
+    push(h2, 'Third-party inspection & BIS testing', num(L2.inspection));
+    push(h2, 'Special / export packaging', num(L2.specialPacking));
+    push(h2, 'Other direct order cost', num(L2.otherDirect));
+    var totL2 = h2.reduce(function (s, x) { return s + x.amount; }, 0);
+    var contribution = grossProfit - totL2;
+
+    /* ---- L3 heads ---- */
+    var invoiceValueForCredit = NSV * (1 + rate(t.maxGst));   // receivable actually blocked
+    var creditDays = num(L3.creditDays);
+    var iRate = rate(L3.interestPct);
+    var creditCost = invoiceValueForCredit * iRate * div(creditDays, 365);
+    var emdCost = num(L3.emdAmount) * iRate * div(num(L3.emdDays), 365);
+    var pbgValue = rate(L3.pbgPct) * NSV;
+    var pbgCost = pbgValue * rate(L3.pbgChargePct) * div(num(L3.pbgMonths), 12);
+
+    var h3 = [];
+    push(h3, 'Sales commission', rate(L3.commissionPct) * NSV, true);
+    push(h3, 'Dealer / channel incentive', rate(L3.dealerIncentivePct) * NSV, true);
+    push(h3, 'Cash / early-payment discount', rate(L3.cashDiscountPct) * NSV, true);
+    push(h3, 'Working-capital cost (' + creditDays + ' days credit)', creditCost, true);
+    push(h3, 'EMD blocked-fund cost', emdCost);
+    push(h3, 'Performance bank guarantee', pbgCost, true);
+    push(h3, 'Tender / portal / document fees', num(L3.tenderFees));
+    push(h3, 'Marketplace transaction charge', rate(L3.gemChargePct) * NSV, true);
+    push(h3, 'Liquidated damages provision', rate(L3.ldProvisionPct) * NSV, true);
+    push(h3, 'Warranty & service provision', rate(L3.warrantyPct) * NSV, true);
+    push(h3, 'Bad-debt provision', rate(L3.badDebtPct) * NSV, true);
+    push(h3, 'Bank & payment charges', rate(L3.bankChargePct) * NSV, true);
+    push(h3, 'Non-creditable GST (ITC leakage)', num(L3.itcLeakage));
+    var totL3 = h3.reduce(function (s, x) { return s + x.amount; }, 0);
+    var netContribution = contribution - totL3;
+
+    /* ---- L4 heads ---- */
+    var factoryOh = rate(L4.factoryOhPct) * t.cogs;
+    var h4 = [];
+    push(h4, 'Factory overhead absorbed', factoryOh);
+    push(h4, 'Administration overhead', rate(L4.adminOhPct) * NSV, true);
+    push(h4, 'Selling & marketing overhead', rate(L4.sellingOhPct) * NSV, true);
+    push(h4, 'Depreciation allocated', num(L4.depreciation));
+    var totL4 = h4.reduce(function (s, x) { return s + x.amount; }, 0);
+
+    var actualGP = netContribution - totL4;
+    var actualGPPct = div(actualGP, NSV) * 100;
+
+    /* ---- L5 tax & cash realisation (never part of GP) ---- */
+    var gstOnRecovery = recovery * rate(t.maxGst);
+    var gstTotal = t.gst + gstOnRecovery;
+    var invoiceValue = NSV + gstTotal;
+    var gstTds = NSV * rate(TX.gstTdsPct);
+    var incomeTds = NSV * rate(TX.tcsPct);
+    var netCollection = invoiceValue - gstTds - incomeTds;
+
+    /* ---- break-even & goal seek -------------------------------------------
+       Actual GP = NSV*(1 - v) - F     where
+       v = every head that scales with revenue,  F = every fixed head.
+       Solve NSV for GP = 0  and for GP% = target.                            */
+    var allHeads = h2.concat(h3, h4);
+    var varAmt = allHeads.reduce(function (s, x) { return s + (x.ofRevenue ? x.amount : 0); }, 0);
+    var fixAmt = allHeads.reduce(function (s, x) { return s + (x.ofRevenue ? 0 : x.amount); }, 0);
+    var v = div(varAmt, NSV);                       // variable rate on revenue
+    var F = t.cogs + fixAmt;                        // fixed pool incl. production cost
+    var breakEvenNSV = (1 - v) > 0 ? div(F, 1 - v) : 0;
+
+    function revenueForTarget(targetPct) {
+      var tR = targetPct / 100, den = 1 - v - tR;
+      return den > 0 ? div(F, den) : 0;
+    }
+
+    var targetPct = num(o.targetGpPct);
+    var reqNSV = revenueForTarget(targetPct);
+    var priceFactor = div(reqNSV, NSV);
+    // discount % that still lands on target, holding list value constant
+    var maxDiscForTarget = t.gross > 0 ? (1 - div(reqNSV - recovery, t.gross)) * 100 : 0;
+
+    /* ---- validations ---- */
+    var issues = [];
+    var flag = function (sev, msg) { issues.push({ sev: sev, msg: msg }); };
+    if (!(o.lines || []).length) flag('error', 'Add at least one product line before saving.');
+    if (!(o.customer && o.customer.name)) flag('error', 'Customer name is required.');
+    if (!(o.meta && o.meta.orderDate)) flag('error', 'Order date is required.');
+    lines.forEach(function (r, i) {
+      var src = o.lines[i] || {};
+      if (r.qty <= 0) flag('error', 'Line ' + (i + 1) + ': quantity must be greater than zero.');
+      if (r.unitNetPrice <= 0) flag('error', 'Line ' + (i + 1) + ': net selling price must be greater than zero.');
+      if (num(src.discPct) < 0 || num(src.discPct) > 100) flag('error', 'Line ' + (i + 1) + ': discount must sit between 0 and 100.');
+      if (r.belowCost) flag('error', 'Line ' + (i + 1) + ' (' + (src.description || 'item') + ') sells below its own production cost.');
+      else if (r.gpPct < 8 && r.qty > 0) flag('warn', 'Line ' + (i + 1) + ' carries only ' + r.gpPct.toFixed(1) + '% margin before order costs.');
+      if (r.unitCogs === 0 && r.qty > 0) flag('warn', 'Line ' + (i + 1) + ' has no costing entered — margin is overstated.');
+    });
+    if (L2.freightMode === 'cbm' && t.cbm === 0) flag('warn', 'Freight is rated per CBM but no volume is entered on any line.');
+    if (L2.freightMode === 'kg' && t.weight === 0) flag('warn', 'Freight is rated per kg but no weight is entered on any line.');
+    if (creditDays > 90) flag('warn', creditDays + ' days of credit is blocking ' + Math.round(creditCost) + ' of working capital.');
+    if (outFreight > 0 && recFreight === 0 && NSV > 0) flag('info', 'Freight is being absorbed in full — nothing is billed back to the customer.');
+    if (totL4 === 0 && NSV > 0) flag('info', 'No overhead is absorbed, so this reads as contribution rather than true GP.');
+    if (actualGPPct < 0) flag('error', 'This order loses money after all costs.');
+
+    /* ---- approval slab ---- */
+    var slabs = o.approvalMatrix || root.GPEngine.defaultApprovalMatrix;
+    var verdict = slabs[slabs.length - 1];
+    for (var i = 0; i < slabs.length; i++) {
+      if (actualGPPct >= slabs[i].minPct) { verdict = slabs[i]; break; }
+    }
+
+    return {
+      lines: lines,
+      totals: {
+        grossValue: t.gross, totalDiscount: t.disc, discountPct: div(t.disc, t.gross) * 100,
+        productRevenue: t.net, recovery: recovery,
+        recFreight: recFreight, recInstall: recInstall, recPacking: recPacking, recOther: recOther,
+        nsv: NSV, qty: t.qty, cbm: t.cbm, weight: t.weight,
+        cogs: t.cogs, cogsPct: div(t.cogs, NSV) * 100,
+        grossProfit: grossProfit, grossProfitPct: div(grossProfit, NSV) * 100,
+        totL2: totL2, contribution: contribution, contributionPct: div(contribution, NSV) * 100,
+        totL3: totL3, netContribution: netContribution, netContributionPct: div(netContribution, NSV) * 100,
+        totL4: totL4, actualGP: actualGP, actualGPPct: actualGPPct,
+        gpPerUnit: div(actualGP, t.qty),
+        totalCost: t.cogs + totL2 + totL3 + totL4,
+        gstTotal: gstTotal, invoiceValue: invoiceValue,
+        gstTds: gstTds, incomeTds: incomeTds, netCollection: netCollection,
+        pbgValue: pbgValue, creditCost: creditCost
+      },
+      heads: { l2: h2, l3: h3, l4: h4 },
+      solver: {
+        variableRate: v * 100, fixedPool: F,
+        breakEvenNSV: breakEvenNSV,
+        breakEvenPct: div(breakEvenNSV, NSV) * 100,
+        targetPct: targetPct, requiredNSV: reqNSV,
+        priceFactor: priceFactor,
+        priceGapPct: (priceFactor - 1) * 100,
+        maxDiscountForTarget: maxDiscForTarget
+      },
+      issues: issues,
+      verdict: verdict,
+      valid: !issues.some(function (x) { return x.sev === 'error'; })
+    };
+  }
+
+  /* ---- sensitivity: re-run with a shocked copy of the order -------------- */
+  function sensitivity(order, shocks) {
+    var clone = JSON.parse(JSON.stringify(order));
+    clone.lines = (clone.lines || []).map(function (l) {
+      l.discPct = num(l.discPct) + num(shocks.discountPts);
+      var f = 1 + rate(shocks.materialPct);
+      ['cMaterial', 'cHardware', 'cUpholstery', 'cFinishing'].forEach(function (k) { l[k] = num(l[k]) * f; });
+      l.cLabour = num(l.cLabour) * (1 + rate(shocks.labourPct));
+      return l;
+    });
+    clone.l2 = clone.l2 || {};
+    clone.l2.freightRate = num(clone.l2.freightRate) * (1 + rate(shocks.freightPct));
+    return compute(clone);
+  }
+
+  root.GPEngine = {
+    compute: compute,
+    computeLine: computeLine,
+    sensitivity: sensitivity,
+    round: r2,
+    defaultApprovalMatrix: [
+      { minPct: 25, level: 'Auto-approved', who: 'No sign-off needed', tone: 'good' },
+      { minPct: 18, level: 'Level 1', who: 'Sales Manager', tone: 'good' },
+      { minPct: 12, level: 'Level 2', who: 'General Manager', tone: 'watch' },
+      { minPct: 6, level: 'Level 3', who: 'Director', tone: 'watch' },
+      { minPct: -1e9, level: 'Blocked', who: 'Proprietor approval only', tone: 'risk' }
+    ]
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
+</script>
+<script>
+/* ===========================================================================
+   Sheets API layer
+   Talks to the Apps Script web app. Every call is POST with
+   Content-Type: text/plain so the browser treats it as a "simple request"
+   and skips the CORS preflight that Apps Script cannot answer.
+   Falls back to browser storage when no endpoint is configured, so the
+   calculator stays fully usable offline.
+   =========================================================================== */
+(function (root) {
+  'use strict';
+
+  var LS_URL = 'gp.endpoint', LS_TOKEN = 'gp.token', LS_CACHE = 'gp.cache';
+
+  function ls(k, v) {
+    try {
+      if (v === undefined) return localStorage.getItem(k);
+      if (v === null) { localStorage.removeItem(k); return null; }
+      localStorage.setItem(k, v); return v;
+    } catch (e) { return null; }
+  }
+
+  /* assets/config.js wins when it holds a real value; otherwise fall back to
+     whatever was typed into the Connect Sheets dialog on this device. */
+  var CFG = root.GP_CONFIG || {};
+  var unset = function (v) {
+    return !v || /^PASTE_|CHANGE-ME/.test(String(v).trim());
+  };
+  var pick = function (cfgVal, lsKey) {
+    return unset(cfgVal) ? (ls(lsKey) || '') : String(cfgVal).trim();
+  };
+
+  var API = {
+    endpoint: pick(CFG.endpoint, LS_URL),
+    token: pick(CFG.token, LS_TOKEN),
+    fromConfig: !unset(CFG.endpoint),
+    online: false,
+
+    configure: function (url, token) {
+      this.endpoint = (url || '').trim();
+      this.token = (token || '').trim();
+      ls(LS_URL, this.endpoint); ls(LS_TOKEN, this.token);
+    },
+
+    call: function (action, payload) {
+      var self = this;
+      if (!this.endpoint) return Promise.reject(new Error('No Google Sheets endpoint configured.'));
+      return fetch(this.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, token: this.token, payload: payload || {} })
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error('Sheets responded ' + r.status);
+          return r.json();
+        })
+        .then(function (j) {
+          if (!j.ok) throw new Error(j.error || 'Sheets rejected the request.');
+          self.online = true;
+          return j.data;
+        })
+        .catch(function (e) { self.online = false; throw e; });
+    },
+
+    /* masters + settings in one round trip on page load */
+    bootstrap: function () { return this.call('bootstrap'); },
+    nextOrderId: function () { return this.call('nextOrderId'); },
+    saveOrder: function (bundle) { return this.call('saveOrder', bundle); },
+    getOrder: function (id) { return this.call('getOrder', { orderId: id }); },
+    listOrders: function (limit) { return this.call('listOrders', { limit: limit || 100 }); },
+
+    /* -------- offline mirror -------- */
+    cacheLocal: function (bundle) {
+      var all = this.readLocal();
+      all[bundle.order.orderId] = bundle;
+      ls(LS_CACHE, JSON.stringify(all));
+    },
+    readLocal: function () {
+      try { return JSON.parse(ls(LS_CACHE) || '{}'); } catch (e) { return {}; }
+    }
+  };
+
+  root.SheetsAPI = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ===========================================================================
+   Sales GP Calculator — application layer
+   =========================================================================== */
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var E = window.GPEngine, API = window.SheetsAPI;
+
+  /* ---------- formatting (Indian numbering) ------------------------------ */
+  var inr = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+  var inr2 = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function money(v) { var n = +v || 0; return (n < 0 ? '−₹' : '₹') + inr.format(Math.abs(Math.round(n))); }
+  function money2(v) { var n = +v || 0; return (n < 0 ? '−₹' : '₹') + inr2.format(Math.abs(n)); }
+  function pc(v) { var n = +v || 0; return (isFinite(n) ? n.toFixed(1) : '0.0') + '%'; }
+  function compact(v) {
+    var n = Math.abs(+v || 0), s = (+v < 0 ? '−' : '');
+    if (n >= 1e7) return s + '₹' + (n / 1e7).toFixed(2) + ' Cr';
+    if (n >= 1e5) return s + '₹' + (n / 1e5).toFixed(2) + ' L';
+    return s + '₹' + inr.format(Math.round(n));
+  }
+
+  /* ---------- fallback masters (used until Sheets is connected) ---------- */
+  var MASTERS = {
+    settings: {
+      companyName: 'Manufacturing · order profitability',
+      interestPct: 11, pbgChargePct: 1.5, targetGpPct: 20,
+      defaultGstPct: 18, defaultWastagePct: 4, defaultInwardPct: 2
+    },
+    products: [
+      { sku: 'CH-EXE-01', name: 'Executive high-back chair', category: 'Office chair', uom: 'Nos', listPrice: 12000, cMaterial: 3200, cHardware: 900, cUpholstery: 1100, cFinishing: 300, cLabour: 800, cPacking: 250, cOther: 0, wastagePct: 4, inwardFreightPct: 2, cbmPerUnit: 0.35, weightPerUnit: 18, gstPct: 18 },
+      { sku: 'CH-TSK-02', name: 'Task chair with mesh back', category: 'Office chair', uom: 'Nos', listPrice: 6500, cMaterial: 1700, cHardware: 620, cUpholstery: 480, cFinishing: 180, cLabour: 450, cPacking: 160, cOther: 0, wastagePct: 4, inwardFreightPct: 2, cbmPerUnit: 0.22, weightPerUnit: 11, gstPct: 18 },
+      { sku: 'CH-VIS-03', name: 'Visitor chair, cantilever', category: 'Office chair', uom: 'Nos', listPrice: 4200, cMaterial: 1150, cHardware: 300, cUpholstery: 380, cFinishing: 140, cLabour: 300, cPacking: 110, cOther: 0, wastagePct: 4, inwardFreightPct: 2, cbmPerUnit: 0.18, weightPerUnit: 8, gstPct: 18 },
+      { sku: 'SF-3ST-01', name: 'Three-seater office sofa', category: 'Sofa', uom: 'Nos', listPrice: 38000, cMaterial: 9800, cHardware: 1200, cUpholstery: 6400, cFinishing: 900, cLabour: 3200, cPacking: 800, cOther: 0, wastagePct: 6, inwardFreightPct: 2, cbmPerUnit: 1.6, weightPerUnit: 62, gstPct: 18 },
+      { sku: 'SF-RCL-02', name: 'Single-seat recliner', category: 'Recliner', uom: 'Nos', listPrice: 29000, cMaterial: 7400, cHardware: 3800, cUpholstery: 4200, cFinishing: 600, cLabour: 2600, cPacking: 650, cOther: 0, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 0.95, weightPerUnit: 45, gstPct: 18 },
+      { sku: 'WS-4ST-01', name: 'Four-seater linear workstation', category: 'Workstation', uom: 'Set', listPrice: 48000, cMaterial: 18000, cHardware: 2500, cUpholstery: 0, cFinishing: 1500, cLabour: 3000, cPacking: 900, cOther: 200, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 1.8, weightPerUnit: 120, gstPct: 18 },
+      { sku: 'WS-6ST-02', name: 'Six-seater cluster workstation', category: 'Workstation', uom: 'Set', listPrice: 68000, cMaterial: 25500, cHardware: 3600, cUpholstery: 0, cFinishing: 2100, cLabour: 4200, cPacking: 1200, cOther: 300, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 2.6, weightPerUnit: 172, gstPct: 18 },
+      { sku: 'TB-CNF-01', name: 'Eight-seat conference table', category: 'Table', uom: 'Nos', listPrice: 54000, cMaterial: 21000, cHardware: 2200, cUpholstery: 0, cFinishing: 2400, cLabour: 3400, cPacking: 1100, cOther: 0, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 2.2, weightPerUnit: 140, gstPct: 18 },
+      { sku: 'TB-EXE-02', name: 'Executive desk with side unit', category: 'Table', uom: 'Nos', listPrice: 32000, cMaterial: 12400, cHardware: 1800, cUpholstery: 0, cFinishing: 1400, cLabour: 2100, cPacking: 700, cOther: 0, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 1.3, weightPerUnit: 82, gstPct: 18 },
+      { sku: 'ST-PED-01', name: 'Three-drawer mobile pedestal', category: 'Storage', uom: 'Nos', listPrice: 8500, cMaterial: 3100, cHardware: 900, cUpholstery: 0, cFinishing: 420, cLabour: 600, cPacking: 240, cOther: 0, wastagePct: 4, inwardFreightPct: 2, cbmPerUnit: 0.28, weightPerUnit: 24, gstPct: 18 }
+    ],
+    customers: [],
+    approvalMatrix: E.defaultApprovalMatrix
+  };
+
+  var CATEGORIES = ['Office chair', 'Sofa', 'Recliner', 'Workstation', 'Table', 'Storage', 'Partition', 'Accessory', 'Other'];
+
+  /* ---------- line rows -------------------------------------------------- */
+  var NUMCOLS = [
+    ['qty', 'w-xs', 1], ['listPrice', 'w-m', 0], ['discPct', 'w-xs', 0]
+  ];
+  var COSTCOLS = ['cMaterial', 'cHardware', 'cUpholstery', 'cFinishing', 'cLabour', 'cPacking', 'cOther'];
+  var LOGCOLS = ['wastagePct', 'inwardFreightPct', 'cbmPerUnit', 'weightPerUnit'];
+
+  function makeRow(seed) {
+    var d = seed || {};
+    var tr = document.createElement('tr');
+    var cells = [];
+
+    cells.push('<td><input class="w-l" data-k="description" list="dlProducts" value="' +
+      esc(d.description || '') + '" placeholder="Type or pick a product"></td>');
+    cells.push('<td><select class="w-m" data-k="category">' +
+      CATEGORIES.map(function (c) { return '<option' + (c === (d.category || 'Office chair') ? ' selected' : '') + '>' + c + '</option>'; }).join('') +
+      '</select></td>');
+
+    NUMCOLS.forEach(function (c) {
+      cells.push('<td><input type="number" class="' + c[1] + '" data-k="' + c[0] +
+        '" step="any" min="0" value="' + (d[c[0]] !== undefined ? d[c[0]] : c[2]) + '"></td>');
+    });
+    cells.push('<td class="cell-out" data-out="netValue">—</td>');
+
+    COSTCOLS.forEach(function (k) {
+      cells.push('<td><input type="number" class="w-s" data-k="' + k + '" step="any" min="0" value="' + (d[k] || 0) + '"></td>');
+    });
+    LOGCOLS.forEach(function (k) {
+      cells.push('<td><input type="number" class="w-xs" data-k="' + k + '" step="any" min="0" value="' + (d[k] || 0) + '"></td>');
+    });
+
+    cells.push('<td class="cell-out" data-out="unitCogs">—</td>');
+    cells.push('<td class="cell-out" data-out="cogs">—</td>');
+    cells.push('<td class="cell-out" data-out="gp">—</td>');
+    cells.push('<td class="cell-out" data-out="gpPct">—</td>');
+    cells.push('<td><button class="x-btn" title="Remove this line" aria-label="Remove line">×</button></td>');
+
+    tr.innerHTML = cells.join('');
+    tr.dataset.gst = d.gstPct || MASTERS.settings.defaultGstPct;
+    tr.dataset.sku = d.sku || '';
+    tr.querySelector('.x-btn').addEventListener('click', function () {
+      tr.remove(); if (!$('lineBody').children.length) addLine(); recalc();
+    });
+    // product master autofill
+    var nameInput = tr.querySelector('[data-k=description]');
+    nameInput.addEventListener('change', function () {
+      var hit = MASTERS.products.find(function (p) {
+        return p.name === nameInput.value || p.sku === nameInput.value ||
+          (p.sku + ' — ' + p.name) === nameInput.value;
+      });
+      if (!hit) return;
+      nameInput.value = hit.name;
+      tr.dataset.sku = hit.sku; tr.dataset.gst = hit.gstPct;
+      tr.querySelector('[data-k=category]').value = hit.category;
+      ['listPrice'].concat(COSTCOLS, LOGCOLS).forEach(function (k) {
+        var el = tr.querySelector('[data-k=' + k + ']');
+        if (el && hit[k] !== undefined) el.value = hit[k];
+      });
+      recalc();
+    });
+    return tr;
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+
+  function addLine(seed) { $('lineBody').appendChild(makeRow(seed)); }
+
+  /* ---------- read the whole form into an order object ------------------- */
+  function v(id) { var el = $(id); return el ? el.value : ''; }
+  function nv(id) { return parseFloat(v(id)) || 0; }
+
+  function readOrder() {
+    var lines = [].map.call($('lineBody').children, function (tr) {
+      var o = { gstPct: +tr.dataset.gst || 18, sku: tr.dataset.sku || '' };
+      [].forEach.call(tr.querySelectorAll('[data-k]'), function (el) {
+        o[el.dataset.k] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
+      });
+      return o;
+    });
+    return {
+      meta: {
+        orderId: v('orderId'), orderDate: v('orderDate'), deliveryDate: v('deliveryDate'),
+        status: v('orderStatus'), salesperson: v('salesperson'), channel: v('channel')
+      },
+      customer: {
+        name: v('custName'), type: v('custType'), gstin: v('custGstin'), state: v('custState')
+      },
+      lines: lines,
+      recovery: {
+        freightBilled: nv('freightBilled'), installBilled: nv('installBilled'),
+        packingBilled: nv('packingBilled'), otherBilled: nv('otherBilled')
+      },
+      l2: {
+        freightMode: v('freightMode'), freightRate: nv('freightRate'), handling: nv('handling'),
+        insurancePct: nv('insurancePct'), installMode: v('installMode'), installRate: nv('installRate'),
+        travel: nv('travel'), sampleCost: nv('sampleCost'), inspection: nv('inspection'),
+        specialPacking: nv('specialPacking'), otherDirect: nv('otherDirect')
+      },
+      l3: {
+        commissionPct: nv('commissionPct'), dealerIncentivePct: nv('dealerIncentivePct'),
+        cashDiscountPct: nv('cashDiscountPct'), interestPct: nv('interestPct'), creditDays: nv('creditDays'),
+        emdAmount: nv('emdAmount'), emdDays: nv('emdDays'), pbgPct: nv('pbgPct'),
+        pbgChargePct: nv('pbgChargePct'), pbgMonths: nv('pbgMonths'), tenderFees: nv('tenderFees'),
+        gemChargePct: nv('gemChargePct'), ldProvisionPct: nv('ldProvisionPct'),
+        warrantyPct: nv('warrantyPct'), badDebtPct: nv('badDebtPct'),
+        bankChargePct: nv('bankChargePct'), itcLeakage: nv('itcLeakage')
+      },
+      l4: {
+        factoryOhPct: nv('factoryOhPct'), adminOhPct: nv('adminOhPct'),
+        sellingOhPct: nv('sellingOhPct'), depreciation: nv('depreciation')
+      },
+      tax: { gstTdsPct: nv('gstTdsPct'), tcsPct: nv('tcsPct') },
+      targetGpPct: nv('targetGpPct'),
+      approvalMatrix: MASTERS.approvalMatrix
+    };
+  }
+
+  /* ---------- write an order object back into the form ------------------- */
+  function writeOrder(o) {
+    var set = function (id, val) { var el = $(id); if (el && val !== undefined && val !== null) el.value = val; };
+    var m = o.meta || {}, c = o.customer || {};
+    set('orderId', m.orderId); set('orderDate', m.orderDate); set('deliveryDate', m.deliveryDate);
+    set('orderStatus', m.status); set('salesperson', m.salesperson); set('channel', m.channel);
+    set('custName', c.name); set('custType', c.type); set('custGstin', c.gstin); set('custState', c.state);
+    ['recovery', 'l2', 'l3', 'l4', 'tax'].forEach(function (grp) {
+      Object.keys(o[grp] || {}).forEach(function (k) { set(k, o[grp][k]); });
+    });
+    set('targetGpPct', o.targetGpPct);
+    $('lineBody').innerHTML = '';
+    (o.lines && o.lines.length ? o.lines : [{}]).forEach(addLine);
+    recalc();
+  }
+
+  /* ---------- render ----------------------------------------------------- */
+  function recalc() {
+    var order = readOrder();
+    var R = E.compute(order);
+    var T = R.totals;
+
+    /* line outputs */
+    [].forEach.call($('lineBody').children, function (tr, i) {
+      var r = R.lines[i]; if (!r) return;
+      var put = function (k, txt) { var c = tr.querySelector('[data-out=' + k + ']'); if (c) c.textContent = txt; };
+      put('netValue', money(r.netRevenue));
+      put('unitCogs', money(r.unitCogs));
+      put('cogs', money(r.cogs));
+      put('gp', money(r.gp));
+      put('gpPct', r.qty ? pc(r.gpPct) : '—');
+      var gpc = tr.querySelector('[data-out=gpPct]'), gc = tr.querySelector('[data-out=gp]');
+      var cls = r.gp < 0 ? 'neg' : (r.gpPct >= 20 ? 'pos' : '');
+      gpc.className = 'cell-out ' + cls; gc.className = 'cell-out ' + cls;
+      tr.classList.toggle('under', r.belowCost);
+    });
+
+    /* footers */
+    $('ftQty').textContent = inr.format(T.qty);
+    $('ftCbm').textContent = T.cbm.toFixed(2);
+    $('ftKg').textContent = inr.format(Math.round(T.weight));
+    $('ftGross').textContent = money(T.grossValue);
+    $('ftDisc').textContent = money(T.totalDiscount) + ' (' + pc(T.discountPct) + ')';
+
+    /* level summaries */
+    $('sumL1').textContent = money(T.grossProfit) + '  ' + pc(T.grossProfitPct);
+    $('sumL2').textContent = money(T.contribution) + '  ' + pc(T.contributionPct);
+    $('sumL3').textContent = money(T.netContribution) + '  ' + pc(T.netContributionPct);
+    $('sumL4').textContent = money(T.actualGP) + '  ' + pc(T.actualGPPct);
+    $('sumL5').textContent = money(T.netCollection);
+
+    /* inline hints */
+    $('freightCalc').textContent = 'Works out to ' + money(headAmt(R, 'l2', 'Outward freight'));
+    $('installCalc').textContent = 'Works out to ' + money(headAmt(R, 'l2', 'Installation'));
+    $('creditCalc').textContent = 'Blocks ' + money(T.creditCost) + ' of interest';
+    $('outGst').value = money2(T.gstTotal);
+    $('outInvoice').value = money2(T.invoiceValue);
+    $('outBreakeven').value = money(R.solver.breakEvenNSV);
+
+    /* hero */
+    var tone = T.actualGPPct >= 18 ? 'good' : (T.actualGPPct >= 8 ? 'watch' : 'risk');
+    var fig = $('gpPct');
+    fig.textContent = (T.nsv ? pc(T.actualGPPct) : '—');
+    fig.className = 'gp-figure ' + (T.nsv ? tone : '');
+    $('gpAbs').textContent = money(T.actualGP);
+    $('gpSub').textContent = T.nsv
+      ? 'on ' + compact(T.nsv) + ' sales value · ' + money(T.gpPerUnit) + ' per unit'
+      : 'on nil sales value';
+
+    /* waterfall */
+    var segs = [
+      ['#8C7A5E', T.cogs], ['#6E7F8C', Math.max(0, T.totL2)],
+      ['#8C6E7F', Math.max(0, T.totL3)], ['#7A7A6E', Math.max(0, T.totL4)],
+      ['#5FCB92', Math.max(0, T.actualGP)]
+    ];
+    var span = segs.reduce(function (s, x) { return s + x[1]; }, 0) || 1;
+    $('fall').innerHTML = segs.map(function (s) {
+      return '<i style="background:' + s[0] + ';width:' + (s[1] / span * 100).toFixed(2) + '%"></i>';
+    }).join('');
+
+    /* verdict */
+    var vd = R.verdict;
+    $('verdict').className = 'verdict ' + (T.nsv ? vd.tone : '');
+    $('verdict').innerHTML = T.nsv
+      ? '<b>' + esc(vd.level) + '</b><span>' + esc(vd.who) + '</span>'
+      : '<b>Awaiting input</b><span>Add a product line to see the approval level.</span>';
+
+    /* ladder */
+    $('ladder').innerHTML = ladderHTML(R);
+
+    /* solver */
+    var s = R.solver;
+    $('solverNote').innerHTML = T.nsv
+      ? (s.priceGapPct <= 0.05
+        ? 'Already at or above the ' + pc(s.targetPct) + ' target. You have <b>' + money(T.nsv - s.requiredNSV) +
+          '</b> of headroom before the target is breached — about <b>' + pc(Math.abs(s.priceGapPct)) + '</b> of price.'
+        : 'To reach ' + pc(s.targetPct) + ' you need <b>' + compact(s.requiredNSV) + '</b> of sales value — raise prices by <b>' +
+          pc(s.priceGapPct) + '</b>, or hold list price and cap the discount at <b>' +
+          (s.maxDiscountForTarget >= 0 ? pc(s.maxDiscountForTarget) : 'nothing — list price alone will not get there') + '</b>.')
+      : 'Set a target to see the price you need.';
+
+    /* checks */
+    $('checkList').innerHTML = R.issues.length
+      ? R.issues.map(function (x) {
+          return '<div class="check ' + x.sev + '"><i></i><span>' + esc(x.msg) + '</span></div>';
+        }).join('')
+      : '<div class="check ok"><i style="background:var(--good)"></i><span>Everything checks out. Nothing is priced below cost and no threshold is breached.</span></div>';
+
+    /* cash note */
+    $('cashNote').innerHTML = T.nsv
+      ? 'You invoice <b>' + money(T.invoiceValue) + '</b>. After <b>' + money(T.gstTds) +
+        '</b> GST TDS and <b>' + money(T.incomeTds) + '</b> income-tax deduction, <b>' + money(T.netCollection) +
+        '</b> reaches the bank — and a performance guarantee of <b>' + money(T.pbgValue) +
+        '</b> stays blocked. Deductions are recoverable, so they never touch gross profit.'
+      : 'Enter an order to see the realisation summary.';
+
+    /* action bar */
+    $('barGp').textContent = T.nsv ? money(T.actualGP) + ' (' + pc(T.actualGPPct) + ')' : '—';
+    $('barNsv').textContent = T.nsv ? compact(T.nsv) : '—';
+    $('barVerdict').textContent = T.nsv ? vd.level : '—';
+    $('barVerdict').className = T.nsv ? (vd.tone === 'risk' ? 'neg' : (vd.tone === 'good' ? 'pos' : '')) : '';
+
+    runWhatIf(order, T);
+    LAST = { order: order, result: R };
+  }
+
+  function headAmt(R, level, prefix) {
+    var h = R.heads[level].find(function (x) { return x.label.indexOf(prefix) === 0; });
+    return h ? h.amount : 0;
+  }
+
+  function ladderHTML(R) {
+    var T = R.totals, out = [];
+    var row = function (label, val, cls, pct) {
+      out.push('<div class="rung ' + (cls || '') + '"><span>' + esc(label) + '</span><span class="v">' +
+        money(val) + (pct !== undefined ? '<span class="pc">' + pc(pct) + '</span>' : '') + '</span></div>');
+    };
+    row('Gross order value', T.grossValue, 'step');
+    if (T.totalDiscount) row('Less discount', -T.totalDiscount, 'minor', T.discountPct);
+    if (T.recovery) row('Add freight, installation & other billed', T.recovery, 'minor');
+    row('Net sales value, excluding GST', T.nsv, 'step', 100);
+    row('Less production cost', -T.cogs, 'minor', T.cogsPct);
+    row('Gross profit', T.grossProfit, 'step', T.grossProfitPct);
+    R.heads.l2.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
+    row('Contribution', T.contribution, 'step', T.contributionPct);
+    R.heads.l3.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
+    row('Net contribution', T.netContribution, 'step', T.netContributionPct);
+    R.heads.l4.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
+    row('Actual gross profit', T.actualGP, 'total', T.actualGPPct);
+    return out.join('');
+  }
+
+  /* ---------- what-if ---------------------------------------------------- */
+  function runWhatIf(order, T) {
+    var sh = {
+      discountPts: +$('wDisc').value, materialPct: +$('wMat').value,
+      labourPct: +$('wLab').value, freightPct: +$('wFrt').value
+    };
+    $('wDiscO').textContent = sh.discountPts.toFixed(1) + ' pts';
+    $('wMatO').textContent = sh.materialPct + '%';
+    $('wLabO').textContent = sh.labourPct + '%';
+    $('wFrtO').textContent = sh.freightPct + '%';
+
+    var any = sh.discountPts || sh.materialPct || sh.labourPct || sh.freightPct;
+    if (!any || !T.nsv) {
+      $('wGpPct').textContent = '—'; $('wGpAbs').textContent = '—';
+      $('wDelta').textContent = '—'; $('wDelta').className = '';
+      return;
+    }
+    var S = E.sensitivity(order, sh).totals;
+    var d = S.actualGP - T.actualGP;
+    $('wGpPct').textContent = pc(S.actualGPPct);
+    $('wGpPct').className = S.actualGPPct < 0 ? 'neg' : (S.actualGPPct >= 18 ? 'pos' : '');
+    $('wGpAbs').textContent = compact(S.actualGP);
+    $('wDelta').textContent = (d >= 0 ? '+' : '') + compact(d);
+    $('wDelta').className = d < 0 ? 'neg' : 'pos';
+  }
+
+  /* ---------- toast ------------------------------------------------------ */
+  var toastTimer;
+  function toast(msg, isErr) {
+    var t = $('toast'); t.textContent = msg;
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = 'toast' + (isErr ? ' err' : ''); }, 4200);
+  }
+
+  /* ---------- persistence ------------------------------------------------ */
+  var LAST = null;
+
+  function bundle() {
+    var order = LAST.order, R = LAST.result, T = R.totals;
+    return {
+      order: {
+        orderId: order.meta.orderId, orderDate: order.meta.orderDate,
+        deliveryDate: order.meta.deliveryDate, status: order.meta.status,
+        salesperson: order.meta.salesperson, channel: order.meta.channel,
+        customerName: order.customer.name, customerType: order.customer.type,
+        customerGstin: order.customer.gstin, customerState: order.customer.state,
+        totalQty: T.qty, totalCbm: T.cbm, totalWeight: T.weight,
+        grossValue: T.grossValue, totalDiscount: T.totalDiscount, discountPct: T.discountPct,
+        recoveryBilled: T.recovery, netSalesValue: T.nsv,
+        productionCost: T.cogs, grossProfit: T.grossProfit, grossProfitPct: T.grossProfitPct,
+        directCost: T.totL2, contribution: T.contribution, contributionPct: T.contributionPct,
+        commercialCost: T.totL3, netContribution: T.netContribution, netContributionPct: T.netContributionPct,
+        overheadCost: T.totL4, actualGP: T.actualGP, actualGPPct: T.actualGPPct,
+        gpPerUnit: T.gpPerUnit, totalCost: T.totalCost,
+        gstAmount: T.gstTotal, invoiceValue: T.invoiceValue,
+        gstTds: T.gstTds, incomeTds: T.incomeTds, netCollection: T.netCollection,
+        breakEvenValue: R.solver.breakEvenNSV, targetGpPct: R.solver.targetPct,
+        requiredValueForTarget: R.solver.requiredNSV, priceGapPct: R.solver.priceGapPct,
+        approvalLevel: R.verdict.level, approvedBy: R.verdict.who,
+        creditDays: order.l3.creditDays, interestPct: order.l3.interestPct
+      },
+      lines: order.lines.map(function (l, i) {
+        var r = R.lines[i];
+        return {
+          orderId: order.meta.orderId, lineNo: i + 1, sku: l.sku, description: l.description,
+          category: l.category, qty: l.qty, listPrice: l.listPrice, discPct: l.discPct,
+          netValue: r.netRevenue, unitNetPrice: r.unitNetPrice,
+          cMaterial: l.cMaterial, cHardware: l.cHardware, cUpholstery: l.cUpholstery,
+          cFinishing: l.cFinishing, cLabour: l.cLabour, cPacking: l.cPacking, cOther: l.cOther,
+          wastagePct: l.wastagePct, inwardFreightPct: l.inwardFreightPct,
+          cbmPerUnit: l.cbmPerUnit, weightPerUnit: l.weightPerUnit,
+          unitCost: r.unitCogs, totalCost: r.cogs, lineGP: r.gp, lineGPPct: r.gpPct,
+          gstPct: l.gstPct, gstAmount: r.gstAmt
+        };
+      }),
+      costs: [].concat(
+        R.heads.l2.map(function (h) { return { orderId: order.meta.orderId, level: 2, head: h.label, amount: h.amount, scalesWithRevenue: h.ofRevenue }; }),
+        R.heads.l3.map(function (h) { return { orderId: order.meta.orderId, level: 3, head: h.label, amount: h.amount, scalesWithRevenue: h.ofRevenue }; }),
+        R.heads.l4.map(function (h) { return { orderId: order.meta.orderId, level: 4, head: h.label, amount: h.amount, scalesWithRevenue: h.ofRevenue }; })
+      ),
+      inputs: LAST.order
+    };
+  }
+
+  function save() {
+    if (!LAST) return;
+    if (!LAST.result.valid) {
+      toast('Fix the errors in Checks before saving.', true); return;
+    }
+    if (!$('orderId').value.trim()) { toast('Give the order an ID first.', true); return; }
+    var b = bundle();
+    API.cacheLocal(b);
+    if (!API.endpoint) { toast('Saved on this device. Connect Google Sheets to store it centrally.'); return; }
+    $('btnSave').disabled = true; $('btnSave').textContent = 'Saving…';
+    API.saveOrder(b)
+      .then(function (d) {
+        setConn(true);
+        toast('Saved ' + (d && d.orderId ? d.orderId : b.order.orderId) + ' to Google Sheets.');
+      })
+      .catch(function (e) { setConn(false); toast(e.message + ' Kept a local copy.', true); })
+      .finally(function () { $('btnSave').disabled = false; $('btnSave').textContent = 'Save to Google Sheets'; });
+  }
+
+  function setConn(on) {
+    $('connDot').className = 'dot ' + (on ? 'on' : (API.endpoint ? 'off' : ''));
+    $('connText').textContent = on ? 'Google Sheets' : (API.endpoint ? 'Sheets unreachable' : 'Local only');
+  }
+
+  /* ---------- boot ------------------------------------------------------- */
+  function applyMasters(m) {
+    if (m.settings) Object.assign(MASTERS.settings, m.settings);
+    if (m.products && m.products.length) MASTERS.products = m.products;
+    if (m.customers) MASTERS.customers = m.customers;
+    if (m.approvalMatrix && m.approvalMatrix.length) MASTERS.approvalMatrix = m.approvalMatrix;
+
+    $('dlProducts').innerHTML = MASTERS.products.map(function (p) {
+      return '<option value="' + esc(p.name) + '">' + esc(p.sku + ' · ' + p.category) + '</option>';
+    }).join('');
+    $('dlCustomers').innerHTML = MASTERS.customers.map(function (c) {
+      return '<option value="' + esc(c.name) + '">' + esc(c.type || '') + '</option>';
+    }).join('');
+    if (MASTERS.settings.companyName) $('brandCo').textContent = MASTERS.settings.companyName;
+    var s = MASTERS.settings;
+    if (s.interestPct) $('interestPct').value = s.interestPct;
+    if (s.pbgChargePct) $('pbgChargePct').value = s.pbgChargePct;
+    if (s.targetGpPct) $('targetGpPct').value = s.targetGpPct;
+  }
+
+  function newOrder() {
+    var d = new Date().toISOString().slice(0, 10);
+    $('orderDate').value = d;
+    $('orderId').value = 'ORD-' + Date.now().toString().slice(-6);
+    $('lineBody').innerHTML = ''; addLine();
+    if (API.endpoint) {
+      API.nextOrderId().then(function (r) { if (r && r.orderId) $('orderId').value = r.orderId; }).catch(function () {});
+    }
+    recalc();
+  }
+
+  function loadOrder() {
+    var id = prompt('Order ID to load');
+    if (!id) return;
+    var local = API.readLocal()[id.trim()];
+    var done = function (b) {
+      if (!b) { toast('No order found with that ID.', true); return; }
+      writeOrder(b.inputs || b.order);
+      toast('Loaded ' + id.trim() + '.');
+    };
+    if (API.endpoint) {
+      API.getOrder(id.trim()).then(function (b) { setConn(true); done(b || local); })
+        .catch(function () { setConn(false); done(local); });
+    } else done(local);
+  }
+
+  function connectDialog() {
+    var url = prompt('Apps Script web app URL (ends with /exec)', API.endpoint || '');
+    if (url === null) return;
+    var tok = prompt('Shared token (must match SHARED_TOKEN in Code.gs)', API.token || '');
+    API.configure(url, tok || '');
+    if (!API.endpoint) { setConn(false); toast('Disconnected. Working locally.'); return; }
+    API.bootstrap().then(function (m) {
+      applyMasters(m || {}); setConn(true);
+      toast('Connected. Loaded ' + (m.products || []).length + ' products and ' + (m.customers || []).length + ' customers.');
+    }).catch(function (e) { setConn(false); toast(e.message, true); });
+  }
+
+  function exportJSON() {
+    if (!LAST) return;
+    var b = bundle();
+    var blob = new Blob([JSON.stringify(b, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (b.order.orderId || 'order') + '.json';
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('Downloaded ' + a.download);
+  }
+
+  /* ---------- events ----------------------------------------------------- */
+  function init() {
+    applyMasters({});
+    newOrder();
+
+    var within = function (e, sel) {
+      var t = e.target;
+      return t && typeof t.closest === 'function' && t.closest(sel);
+    };
+    document.addEventListener('input', function (e) {
+      if (within(e, '.shell, .masthead')) recalc();
+    });
+    document.addEventListener('change', function (e) {
+      if (within(e, '.shell')) recalc();
+    });
+
+    $('btnAddLine').addEventListener('click', function () { addLine(); recalc(); });
+    $('btnClearLines').addEventListener('click', function () {
+      $('lineBody').innerHTML = ''; addLine(); recalc();
+    });
+    $('btnDuplicate').addEventListener('click', function () {
+      var rows = $('lineBody').children;
+      if (!rows.length) return addLine();
+      var last = rows[rows.length - 1], seed = { gstPct: +last.dataset.gst, sku: last.dataset.sku };
+      [].forEach.call(last.querySelectorAll('[data-k]'), function (el) {
+        seed[el.dataset.k] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
+      });
+      addLine(seed); recalc();
+    });
+    $('btnResetWhatif').addEventListener('click', function () {
+      ['wDisc', 'wMat', 'wLab', 'wFrt'].forEach(function (id) { $(id).value = 0; }); recalc();
+    });
+    $('btnSave').addEventListener('click', save);
+    $('btnNew').addEventListener('click', newOrder);
+    $('btnLoad').addEventListener('click', loadOrder);
+    $('btnExport').addEventListener('click', exportJSON);
+    $('btnPrint').addEventListener('click', function () { window.print(); });
+    $('btnConnect').addEventListener('click', connectDialog);
+
+    document.addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); save(); }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); addLine(); recalc(); }
+    });
+
+    setConn(false);
+    if (API.endpoint) {
+      API.bootstrap().then(function (m) { applyMasters(m || {}); setConn(true); })
+        .catch(function () { setConn(false); });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+
+</script>
+<script>
+
+/* preview only: fill a realistic order so the panel is alive on load */
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    var $ = function (i) { return document.getElementById(i); };
+    var set = function (i, v) { var e = $(i); if (e) e.value = v; };
+    set('custName', 'Meridian Business Park Pvt Ltd');
+    set('custType', 'Corporate');
+    set('custGstin', '09ABCDE1234F1Z5');
+    set('custState', 'Uttar Pradesh');
+    set('salesperson', 'Rahul Verma');
+    set('deliveryDate', new Date(Date.now() + 26 * 864e5).toISOString().slice(0, 10));
+
+    var body = $('lineBody'); body.innerHTML = '';
+    [['Executive high-back chair', 60, 16],
+     ['Four-seater linear workstation', 12, 11],
+     ['Eight-seat conference table', 3, 8]].forEach(function (d) {
+      $('btnAddLine').click();
+      var tr = body.lastElementChild;
+      var n = tr.querySelector('[data-k=description]');
+      n.value = d[0];
+      n.dispatchEvent(new Event('change', { bubbles: true }));
+      tr.querySelector('[data-k=qty]').value = d[1];
+      tr.querySelector('[data-k=discPct]').value = d[2];
+    });
+
+    [['freightRate', 1400], ['handling', 9000], ['insurancePct', 0.2],
+     ['installRate', 300], ['travel', 14000], ['inspection', 12000],
+     ['freightBilled', 30000], ['installBilled', 18000],
+     ['commissionPct', 2], ['creditDays', 60], ['pbgPct', 5], ['pbgMonths', 18],
+     ['warrantyPct', 1.5], ['badDebtPct', 0.75], ['bankChargePct', 0.2],
+     ['factoryOhPct', 12], ['adminOhPct', 3.5], ['sellingOhPct', 2.5]
+    ].forEach(function (p) { set(p[0], p[1]); });
+
+    $('custName').dispatchEvent(new Event('input', { bubbles: true }));
+  }, 60);
+});
+
+</script>
+</body>
+</html>
