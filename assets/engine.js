@@ -27,14 +27,10 @@
     var netRev = gross - discAmt;
     var unitNet = div(netRev, qty);
 
-    // material family (subject to wastage + inward freight)
-    var matBase = num(l.cMaterial) + num(l.cHardware) + num(l.cUpholstery) + num(l.cFinishing);
-    var wastage = matBase * rate(l.wastagePct);
-    var inward = (matBase + wastage) * rate(l.inwardFreightPct);
-    // conversion family (not subject to wastage)
-    var conv = num(l.cLabour) + num(l.cPacking) + num(l.cOther);
+    // the four costed parts — taken straight, no wastage or inward freight loading
+    var partsBase = num(l.cArmrest) + num(l.cSeatMech) + num(l.cBase) + num(l.cWheels);
 
-    var unitCogs = matBase + wastage + inward + conv;
+    var unitCogs = partsBase;
     var cogs = unitCogs * qty;
 
     var gp = netRev - cogs;
@@ -45,8 +41,12 @@
       discountAmt: discAmt,
       netRevenue: netRev,
       unitNetPrice: unitNet,
-      unitMaterial: matBase + wastage + inward,
-      unitConversion: conv,
+      unitArmrest: num(l.cArmrest),
+      unitSeatMech: num(l.cSeatMech),
+      unitBase: num(l.cBase),
+      unitWheels: num(l.cWheels),
+      unitMaterial: partsBase,
+      unitConversion: 0,
       unitCogs: unitCogs,
       cogs: cogs,
       gp: gp,
@@ -258,8 +258,7 @@
     clone.lines = (clone.lines || []).map(function (l) {
       l.discPct = num(l.discPct) + num(shocks.discountPts);
       var f = 1 + rate(shocks.materialPct);
-      ['cMaterial', 'cHardware', 'cUpholstery', 'cFinishing'].forEach(function (k) { l[k] = num(l[k]) * f; });
-      l.cLabour = num(l.cLabour) * (1 + rate(shocks.labourPct));
+      ['cArmrest', 'cSeatMech', 'cBase', 'cWheels'].forEach(function (k) { l[k] = num(l[k]) * f; });
       return l;
     });
     clone.l2 = clone.l2 || {};

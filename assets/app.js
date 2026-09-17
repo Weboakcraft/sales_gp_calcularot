@@ -25,19 +25,19 @@
     settings: {
       companyName: 'Manufacturing · order profitability',
       interestPct: 11, pbgChargePct: 1.5, targetGpPct: 20,
-      defaultGstPct: 18, defaultWastagePct: 4, defaultInwardPct: 2
+      defaultGstPct: 18
     },
     products: [
-      { sku: 'CH-EXE-01', name: 'Executive high-back chair', category: 'Office chair', uom: 'Nos', listPrice: 12000, cMaterial: 3200, cHardware: 900, cUpholstery: 1100, cFinishing: 300, cLabour: 800, cPacking: 250, cOther: 0, wastagePct: 4, inwardFreightPct: 2, cbmPerUnit: 0.35, weightPerUnit: 18, gstPct: 18 },
-      { sku: 'CH-TSK-02', name: 'Task chair with mesh back', category: 'Office chair', uom: 'Nos', listPrice: 6500, cMaterial: 1700, cHardware: 620, cUpholstery: 480, cFinishing: 180, cLabour: 450, cPacking: 160, cOther: 0, wastagePct: 4, inwardFreightPct: 2, cbmPerUnit: 0.22, weightPerUnit: 11, gstPct: 18 },
-      { sku: 'CH-VIS-03', name: 'Visitor chair, cantilever', category: 'Office chair', uom: 'Nos', listPrice: 4200, cMaterial: 1150, cHardware: 300, cUpholstery: 380, cFinishing: 140, cLabour: 300, cPacking: 110, cOther: 0, wastagePct: 4, inwardFreightPct: 2, cbmPerUnit: 0.18, weightPerUnit: 8, gstPct: 18 },
-      { sku: 'SF-3ST-01', name: 'Three-seater office sofa', category: 'Sofa', uom: 'Nos', listPrice: 38000, cMaterial: 9800, cHardware: 1200, cUpholstery: 6400, cFinishing: 900, cLabour: 3200, cPacking: 800, cOther: 0, wastagePct: 6, inwardFreightPct: 2, cbmPerUnit: 1.6, weightPerUnit: 62, gstPct: 18 },
-      { sku: 'SF-RCL-02', name: 'Single-seat recliner', category: 'Recliner', uom: 'Nos', listPrice: 29000, cMaterial: 7400, cHardware: 3800, cUpholstery: 4200, cFinishing: 600, cLabour: 2600, cPacking: 650, cOther: 0, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 0.95, weightPerUnit: 45, gstPct: 18 },
-      { sku: 'WS-4ST-01', name: 'Four-seater linear workstation', category: 'Workstation', uom: 'Set', listPrice: 48000, cMaterial: 18000, cHardware: 2500, cUpholstery: 0, cFinishing: 1500, cLabour: 3000, cPacking: 900, cOther: 200, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 1.8, weightPerUnit: 120, gstPct: 18 },
-      { sku: 'WS-6ST-02', name: 'Six-seater cluster workstation', category: 'Workstation', uom: 'Set', listPrice: 68000, cMaterial: 25500, cHardware: 3600, cUpholstery: 0, cFinishing: 2100, cLabour: 4200, cPacking: 1200, cOther: 300, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 2.6, weightPerUnit: 172, gstPct: 18 },
-      { sku: 'TB-CNF-01', name: 'Eight-seat conference table', category: 'Table', uom: 'Nos', listPrice: 54000, cMaterial: 21000, cHardware: 2200, cUpholstery: 0, cFinishing: 2400, cLabour: 3400, cPacking: 1100, cOther: 0, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 2.2, weightPerUnit: 140, gstPct: 18 },
-      { sku: 'TB-EXE-02', name: 'Executive desk with side unit', category: 'Table', uom: 'Nos', listPrice: 32000, cMaterial: 12400, cHardware: 1800, cUpholstery: 0, cFinishing: 1400, cLabour: 2100, cPacking: 700, cOther: 0, wastagePct: 5, inwardFreightPct: 2, cbmPerUnit: 1.3, weightPerUnit: 82, gstPct: 18 },
-      { sku: 'ST-PED-01', name: 'Three-drawer mobile pedestal', category: 'Storage', uom: 'Nos', listPrice: 8500, cMaterial: 3100, cHardware: 900, cUpholstery: 0, cFinishing: 420, cLabour: 600, cPacking: 240, cOther: 0, wastagePct: 4, inwardFreightPct: 2, cbmPerUnit: 0.28, weightPerUnit: 24, gstPct: 18 }
+      { sku: 'CH-EXE-01', name: 'Executive high-back chair', category: 'Office chair', uom: 'Nos', listPrice: 12000, cArmrest: 850, cSeatMech: 2200, cBase: 1650, cWheels: 700, cbmPerUnit: 0.35, weightPerUnit: 18, gstPct: 18 },
+      { sku: 'CH-TSK-02', name: 'Task chair with mesh back', category: 'Office chair', uom: 'Nos', listPrice: 6500, cArmrest: 420, cSeatMech: 1150, cBase: 780, cWheels: 380, cbmPerUnit: 0.22, weightPerUnit: 11, gstPct: 18 },
+      { sku: 'CH-VIS-03', name: 'Visitor chair, cantilever', category: 'Office chair', uom: 'Nos', listPrice: 4200, cArmrest: 380, cSeatMech: 0, cBase: 1100, cWheels: 0, cbmPerUnit: 0.18, weightPerUnit: 8, gstPct: 18 },
+      { sku: 'SF-3ST-01', name: 'Three-seater office sofa', category: 'Sofa', uom: 'Nos', listPrice: 38000, cArmrest: 2400, cSeatMech: 0, cBase: 14500, cWheels: 0, cbmPerUnit: 1.6, weightPerUnit: 62, gstPct: 18 },
+      { sku: 'SF-RCL-02', name: 'Single-seat recliner', category: 'Recliner', uom: 'Nos', listPrice: 29000, cArmrest: 1800, cSeatMech: 6200, cBase: 6400, cWheels: 0, cbmPerUnit: 0.95, weightPerUnit: 45, gstPct: 18 },
+      { sku: 'WS-4ST-01', name: 'Four-seater linear workstation', category: 'Workstation', uom: 'Set', listPrice: 48000, cArmrest: 0, cSeatMech: 0, cBase: 25600, cWheels: 0, cbmPerUnit: 1.8, weightPerUnit: 120, gstPct: 18 },
+      { sku: 'WS-6ST-02', name: 'Six-seater cluster workstation', category: 'Workstation', uom: 'Set', listPrice: 68000, cArmrest: 0, cSeatMech: 0, cBase: 36300, cWheels: 0, cbmPerUnit: 2.6, weightPerUnit: 172, gstPct: 18 },
+      { sku: 'TB-CNF-01', name: 'Eight-seat conference table', category: 'Table', uom: 'Nos', listPrice: 54000, cArmrest: 0, cSeatMech: 0, cBase: 30500, cWheels: 0, cbmPerUnit: 2.2, weightPerUnit: 140, gstPct: 18 },
+      { sku: 'TB-EXE-02', name: 'Executive desk with side unit', category: 'Table', uom: 'Nos', listPrice: 32000, cArmrest: 0, cSeatMech: 0, cBase: 18400, cWheels: 0, cbmPerUnit: 1.3, weightPerUnit: 82, gstPct: 18 },
+      { sku: 'ST-PED-01', name: 'Three-drawer mobile pedestal', category: 'Storage', uom: 'Nos', listPrice: 8500, cArmrest: 0, cSeatMech: 0, cBase: 3900, cWheels: 420, cbmPerUnit: 0.28, weightPerUnit: 24, gstPct: 18 }
     ],
     customers: [],
     approvalMatrix: E.defaultApprovalMatrix
@@ -49,8 +49,8 @@
   var NUMCOLS = [
     ['qty', 'w-xs', 1], ['listPrice', 'w-m', 0], ['discPct', 'w-xs', 0]
   ];
-  var COSTCOLS = ['cMaterial', 'cHardware', 'cUpholstery', 'cFinishing', 'cLabour', 'cPacking', 'cOther'];
-  var LOGCOLS = ['wastagePct', 'inwardFreightPct', 'cbmPerUnit', 'weightPerUnit'];
+  var COSTCOLS = ['cArmrest', 'cSeatMech', 'cBase', 'cWheels'];
+  var LOGCOLS = ['cbmPerUnit', 'weightPerUnit'];
 
   function makeRow(seed) {
     var d = seed || {};
@@ -317,14 +317,13 @@
   function runWhatIf(order, T) {
     var sh = {
       discountPts: +$('wDisc').value, materialPct: +$('wMat').value,
-      labourPct: +$('wLab').value, freightPct: +$('wFrt').value
+      freightPct: +$('wFrt').value
     };
     $('wDiscO').textContent = sh.discountPts.toFixed(1) + ' pts';
     $('wMatO').textContent = sh.materialPct + '%';
-    $('wLabO').textContent = sh.labourPct + '%';
     $('wFrtO').textContent = sh.freightPct + '%';
 
-    var any = sh.discountPts || sh.materialPct || sh.labourPct || sh.freightPct;
+    var any = sh.discountPts || sh.materialPct || sh.freightPct;
     if (!any || !T.nsv) {
       $('wGpPct').textContent = '—'; $('wGpAbs').textContent = '—';
       $('wDelta').textContent = '—'; $('wDelta').className = '';
@@ -381,9 +380,7 @@
           orderId: order.meta.orderId, lineNo: i + 1, sku: l.sku, description: l.description,
           category: l.category, qty: l.qty, listPrice: l.listPrice, discPct: l.discPct,
           netValue: r.netRevenue, unitNetPrice: r.unitNetPrice,
-          cMaterial: l.cMaterial, cHardware: l.cHardware, cUpholstery: l.cUpholstery,
-          cFinishing: l.cFinishing, cLabour: l.cLabour, cPacking: l.cPacking, cOther: l.cOther,
-          wastagePct: l.wastagePct, inwardFreightPct: l.inwardFreightPct,
+          cArmrest: l.cArmrest, cSeatMech: l.cSeatMech, cBase: l.cBase, cWheels: l.cWheels,
           cbmPerUnit: l.cbmPerUnit, weightPerUnit: l.weightPerUnit,
           unitCost: r.unitCogs, totalCost: r.cogs, lineGP: r.gp, lineGPPct: r.gpPct,
           gstPct: l.gstPct, gstAmount: r.gstAmt
@@ -521,7 +518,7 @@
       addLine(seed); recalc();
     });
     $('btnResetWhatif').addEventListener('click', function () {
-      ['wDisc', 'wMat', 'wLab', 'wFrt'].forEach(function (id) { $(id).value = 0; }); recalc();
+      ['wDisc', 'wMat', 'wFrt'].forEach(function (id) { $(id).value = 0; }); recalc();
     });
     $('btnSave').addEventListener('click', save);
     $('btnNew').addEventListener('click', newOrder);
