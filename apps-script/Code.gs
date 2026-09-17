@@ -20,9 +20,8 @@ var ORDER_PREFIX = 'ORD';
 var SCHEMA = {
   Settings: ['Key', 'Value', 'Notes'],
 
-  M_Products: ['SKU', 'Product Name', 'Category', 'UOM', 'List Price', 'Armrest Cost',
-    'Seat Mechanism Cost', 'Base Cost', 'Wheels Cost', 'CBM per Unit',
-    'Weight per Unit (kg)', 'GST %', 'HSN Code', 'Active'],
+  M_Products: ['Model Code', 'Model Name', 'UOM', 'Sale Rate', 'Standard Rate',
+    'Packing', 'Freight', 'GST %', 'HSN Code', 'Active'],
 
   M_Customers: ['Customer Code', 'Customer Name', 'Customer Type', 'GSTIN', 'State',
     'City', 'Credit Days', 'Default Discount %', 'Sales Commission %', 'Credit Limit',
@@ -46,9 +45,9 @@ var SCHEMA = {
     'Approval Level', 'Approver', 'Credit Days', 'Interest % p.a.',
     'Saved At', 'Saved By', 'Input JSON'],
 
-  T_OrderLines: ['Order ID', 'Line No', 'SKU', 'Description', 'Category', 'Qty',
-    'List Price', 'Discount %', 'Net Line Value', 'Unit Net Price',
-    'Armrest', 'Seat Mechanism', 'Base', 'Wheels', 'CBM per Unit', 'Weight per Unit',
+  T_OrderLines: ['Order ID', 'Line No', 'Model Code', 'Description', 'Qty',
+    'Sale Rate', 'Discount %', 'Net Line Value', 'Unit Net Price',
+    'Model', 'Standard Rate', 'Customisation', 'Customisation Detail', 'Packing', 'Freight',
     'Unit Cost', 'Total Line Cost', 'Line GP', 'Line GP %', 'GST %', 'GST Amount'],
 
   T_OrderCosts: ['Order ID', 'Level', 'Cost Head', 'Amount', 'Scales With Revenue'],
@@ -70,9 +69,9 @@ var ORDER_KEYS = ['orderId', 'orderDate', 'deliveryDate', 'status', 'salesperson
   'breakEvenValue', 'targetGpPct', 'requiredValueForTarget', 'priceGapPct',
   'approvalLevel', 'approvedBy', 'creditDays', 'interestPct'];
 
-var LINE_KEYS = ['orderId', 'lineNo', 'sku', 'description', 'category', 'qty',
+var LINE_KEYS = ['orderId', 'lineNo', 'sku', 'description', 'qty',
   'listPrice', 'discPct', 'netValue', 'unitNetPrice',
-  'cArmrest', 'cSeatMech', 'cBase', 'cWheels', 'cbmPerUnit', 'weightPerUnit',
+  'model', 'cStandard', 'cCustom', 'customisationDetail', 'cPacking', 'cFreight',
   'unitCost', 'totalCost', 'lineGP', 'lineGPPct', 'gstPct', 'gstAmount'];
 
 var COST_KEYS = ['orderId', 'level', 'head', 'amount', 'scalesWithRevenue'];
@@ -116,8 +115,6 @@ function seedSettings(ss) {
     ['companyName', 'Your Company — order profitability', 'Shown beside the app title'],
     ['orderPrefix', ORDER_PREFIX, 'Prefix for auto-generated order IDs'],
     ['orderCounter', 1000, 'Last number issued. The app increments this.'],
-    ['interestPct', 11, 'Cost of funds, % per annum'],
-    ['pbgChargePct', 1.5, 'Bank charge on performance guarantees, % p.a.'],
     ['targetGpPct', 20, 'House target gross profit %'],
     ['defaultGstPct', 18, 'Default GST rate on furniture'],
     ['currency', 'INR', 'Reporting currency']
@@ -146,20 +143,20 @@ function seedApprovalMatrix(ss) {
 
 function seedProducts(ss) {
   var rows = [
-    ['CH-EXE-01', 'Executive high-back chair', 'Office chair', 'Nos', 12000, 850, 2200, 1650, 700, 0.35, 18, 18, '9401', 'Yes'],
-    ['CH-TSK-02', 'Task chair with mesh back', 'Office chair', 'Nos', 6500, 420, 1150, 780, 380, 0.22, 11, 18, '9401', 'Yes'],
-    ['CH-VIS-03', 'Visitor chair, cantilever', 'Office chair', 'Nos', 4200, 380, 0, 1100, 0, 0.18, 8, 18, '9401', 'Yes'],
-    ['SF-3ST-01', 'Three-seater office sofa', 'Sofa', 'Nos', 38000, 2400, 0, 14500, 0, 1.6, 62, 18, '9401', 'Yes'],
-    ['SF-RCL-02', 'Single-seat recliner', 'Recliner', 'Nos', 29000, 1800, 6200, 6400, 0, 0.95, 45, 18, '9401', 'Yes'],
-    ['WS-4ST-01', 'Four-seater linear workstation', 'Workstation', 'Set', 48000, 0, 0, 25600, 0, 1.8, 120, 18, '9403', 'Yes'],
-    ['WS-6ST-02', 'Six-seater cluster workstation', 'Workstation', 'Set', 68000, 0, 0, 36300, 0, 2.6, 172, 18, '9403', 'Yes'],
-    ['TB-CNF-01', 'Eight-seat conference table', 'Table', 'Nos', 54000, 0, 0, 30500, 0, 2.2, 140, 18, '9403', 'Yes'],
-    ['TB-EXE-02', 'Executive desk with side unit', 'Table', 'Nos', 32000, 0, 0, 18400, 0, 1.3, 82, 18, '9403', 'Yes'],
-    ['ST-PED-01', 'Three-drawer mobile pedestal', 'Storage', 'Nos', 8500, 0, 0, 3900, 420, 0.28, 24, 18, '9403', 'Yes']
+    ['HURRICANE', 'Hurricane', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['MATRIX-HB', 'Matrix HB', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['MATRIX-MB', 'Matrix MB', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['01', '01', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['15-NO', '15 No.', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['BUTTERFLY', 'Butterfly', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['ROBO', 'Robo', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['PEARS', 'Pears', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['07', '07', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['BOOM', 'Boom', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes']
   ];
   var sh = ss.getSheetByName('M_Products');
   sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
-  sh.getRange(2, 5, rows.length, 7).setNumberFormat('#,##0.00');
+  sh.getRange(2, 4, rows.length, 4).setNumberFormat('#,##0.00');
   sh.setColumnWidth(2, 230);
   sh.getRange(rows.length + 3, 1).setValue(
     'Edit these rows freely — the calculator loads them as its product master. Keep Active = Yes for anything you still sell.');
@@ -282,13 +279,12 @@ function bootstrap() {
   });
 
   var products = readTable('M_Products')
-    .filter(function (r) { return String(r[13]).toLowerCase() !== 'no'; })
+    .filter(function (r) { return String(r[9]).toLowerCase() !== 'no'; })
     .map(function (r) {
       return {
-        sku: r[0], name: r[1], category: r[2], uom: r[3], listPrice: +r[4] || 0,
-        cArmrest: +r[5] || 0, cSeatMech: +r[6] || 0, cBase: +r[7] || 0, cWheels: +r[8] || 0,
-        cbmPerUnit: +r[9] || 0, weightPerUnit: +r[10] || 0,
-        gstPct: +r[11] || 18, hsn: r[12]
+        sku: r[0], name: r[1], uom: r[2], listPrice: +r[3] || 0,
+        cStandard: +r[4] || 0, cPacking: +r[5] || 0, cFreight: +r[6] || 0,
+        gstPct: +r[7] || 18, hsn: r[8]
       };
     });
 
