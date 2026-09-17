@@ -23,25 +23,29 @@ window.addEventListener('load', function () {
     set('deliveryDate', new Date(Date.now() + 26 * 864e5).toISOString().slice(0, 10));
 
     var body = $('lineBody'); body.innerHTML = '';
-    [['Executive high-back chair', 60, 16],
-     ['Four-seater linear workstation', 12, 11],
-     ['Eight-seat conference table', 3, 8]].forEach(function (d) {
+    [['Hurricane', 40, 10, 9800, 5200, 180, 240, ['Adjustable armrest', 320]],
+     ['Matrix HB', 12, 8, 14500, 7900, 220, 300, null],
+     ['Robo', 6, 5, 7400, 4100, 150, 210, null]].forEach(function (d) {
       $('btnAddLine').click();
-      var tr = body.lastElementChild;
-      var n = tr.querySelector('[data-k=description]');
-      n.value = d[0];
-      n.dispatchEvent(new Event('change', { bubbles: true }));
+      var tr = body.querySelectorAll('tr.line');
+      tr = tr[tr.length - 1];
+      var sel = tr.querySelector('[data-k=model]');
+      sel.value = d[0];
       tr.querySelector('[data-k=qty]').value = d[1];
       tr.querySelector('[data-k=discPct]').value = d[2];
+      tr.querySelector('[data-k=listPrice]').value = d[3];
+      tr.querySelector('[data-k=cStandard]').value = d[4];
+      tr.querySelector('[data-k=cPacking]').value = d[5];
+      tr.querySelector('[data-k=cFreight]').value = d[6];
+      if (d[7]) {
+        tr.querySelector('.add-btn').click();
+        var cr = body.querySelector('tr.cust[data-parent="' + tr.dataset.id + '"]');
+        cr.querySelector('[data-k=desc]').value = d[7][0];
+        cr.querySelector('[data-k=rate]').value = d[7][1];
+      }
     });
 
-    [['freightRate', 1400], ['handling', 9000], ['insurancePct', 0.2],
-     ['installRate', 300], ['travel', 14000], ['inspection', 12000],
-     ['freightBilled', 30000], ['installBilled', 18000],
-     ['commissionPct', 2], ['creditDays', 60], ['pbgPct', 5], ['pbgMonths', 18],
-     ['warrantyPct', 1.5], ['badDebtPct', 0.75], ['bankChargePct', 0.2],
-     ['factoryOhPct', 12], ['adminOhPct', 3.5], ['sellingOhPct', 2.5]
-    ].forEach(function (p) { set(p[0], p[1]); });
+    set('gstPct', 18);
 
     $('custName').dispatchEvent(new Event('input', { bubbles: true }));
   }, 60);

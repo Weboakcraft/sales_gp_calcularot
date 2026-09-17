@@ -72,7 +72,7 @@
     <article class="level">
       <div class="level-head">
         <span class="level-no">1</span>
-        <div><h2>Products &amp; production cost</h2><p>What you make, what you charge, and what the four costed parts add up to per unit.</p></div>
+        <div><h2>BOM &amp; rate</h2><p>Pick the model, add whatever was customised, then packing and freight. That is the rate.</p></div>
         <div class="level-sum"><span id="sumL1">—</span><small>Gross profit</small></div>
       </div>
       <div class="level-body pad0">
@@ -80,15 +80,15 @@
           <table class="lines">
             <thead>
               <tr>
-                <th colspan="6" class="grp" style="border-left:none">Sale</th>
+                <th colspan="5" class="grp" style="border-left:none">Sale</th>
                 <th colspan="4" class="grp">Cost per unit</th>
                 <th colspan="4" class="grp">Result</th>
                 <th class="grp"></th>
               </tr>
               <tr>
-                <th class="l">Product</th><th class="l">Category</th>
-                <th>Qty</th><th>List price</th><th>Disc %</th><th>Net value</th>
-                <th>Armrest</th><th>Seat mechanism</th><th>Base</th><th>Wheels</th>
+                <th class="l">Model</th>
+                <th>Qty</th><th>Sale rate</th><th>Disc %</th><th>Net value</th>
+                <th>Standard rate</th><th>Customisation</th><th>Packing</th><th>Freight</th>
                 <th>Unit cost</th><th>Total cost</th><th>Line GP</th><th>GP %</th>
                 <th></th>
               </tr>
@@ -100,7 +100,7 @@
           <button class="btn btn-sm" id="btnAddLine">Add line</button>
           <button class="btn btn-sm" id="btnClearLines">Clear all lines</button>
           <button class="btn btn-sm" id="btnDuplicate">Duplicate last line</button>
-          <span class="stat">Qty <b id="ftQty">0</b> · Volume <b id="ftCbm">0</b> CBM · Weight <b id="ftKg">0</b> kg · Gross <b id="ftGross">0</b> · Discount <b id="ftDisc">0</b></span>
+          <span class="stat">Qty <b id="ftQty">0</b> · Gross <b id="ftGross">0</b> · Discount <b id="ftDisc">0</b> · Customisation <b id="ftCust">0</b></span>
         </div>
       </div>
     </article>
@@ -109,34 +109,16 @@
     <article class="level">
       <div class="level-head">
         <span class="level-no">2</span>
-        <div><h2>Overhead absorption</h2><p>This order's share of the factory and the office. Skip it and you are reading contribution, not profit.</p></div>
-        <div class="level-sum"><span id="sumL2">—</span><small>Actual GP</small></div>
+        <div><h2>GST &amp; final rate</h2><p>The rate you quote, before and after tax. GST is worked out separately and never touches gross profit.</p></div>
+        <div class="level-sum"><span id="sumL2">—</span><small>With GST</small></div>
       </div>
       <div class="level-body">
         <div class="grid g4">
-          <div class="f"><label for="factoryOhPct">Factory overhead % of production cost</label><input type="number" id="factoryOhPct" value="0" step="0.01"></div>
-          <div class="f"><label for="adminOhPct">Administration % of sales</label><input type="number" id="adminOhPct" value="0" step="0.01"></div>
-          <div class="f"><label for="sellingOhPct">Selling &amp; marketing % of sales</label><input type="number" id="sellingOhPct" value="0" step="0.01"></div>
-          <div class="f"><label for="depreciation">Depreciation allocated</label><input type="number" id="depreciation" value="0"></div>
+          <div class="f"><label for="gstPct">GST %</label><input type="number" id="gstPct" value="18" step="0.01"></div>
+          <div class="f f-out"><label>Rate without GST</label><input id="outNoGst" readonly></div>
+          <div class="f f-out"><label>GST amount</label><input id="outGst" readonly></div>
+          <div class="f f-out"><label>Rate with GST</label><input id="outInvoice" readonly></div>
         </div>
-      </div>
-    </article>
-
-    <!-- LEVEL 3 -->
-    <article class="level">
-      <div class="level-head">
-        <span class="level-no">3</span>
-        <div><h2>Tax &amp; cash realisation</h2><p>What you invoice and what actually lands in the bank. None of this changes gross profit.</p></div>
-        <div class="level-sum"><span id="sumL3">—</span><small>Net collection</small></div>
-      </div>
-      <div class="level-body">
-        <div class="grid g4">
-          <div class="f"><label for="gstTdsPct">GST TDS deducted %</label><input type="number" id="gstTdsPct" value="0" step="0.01"><span class="hint">2% for government contracts above ₹2.5 lakh</span></div>
-          <div class="f"><label for="tcsPct">TCS / income-tax TDS %</label><input type="number" id="tcsPct" value="0" step="0.01"></div>
-          <div class="f f-out"><label>GST payable</label><input id="outGst" readonly></div>
-          <div class="f f-out"><label>Invoice value including GST</label><input id="outInvoice" readonly></div>
-        </div>
-        <div class="callout" style="margin-top:14px" id="cashNote">Enter an order to see the realisation summary.</div>
       </div>
     </article>
 
@@ -146,7 +128,7 @@
   <aside class="panel">
 
     <div class="readout">
-      <div class="cap">Actual gross profit on this order</div>
+      <div class="cap">Gross profit on this order</div>
       <div class="gp-figure" id="gpPct">0.0%</div>
       <div class="gp-abs" id="gpAbs">₹0</div>
       <div class="gp-sub" id="gpSub">on nil sales value</div>
@@ -156,7 +138,6 @@
       </div>
       <div class="fall-key">
         <span><i style="background:#8C7A5E"></i>Production</span>
-        <span><i style="background:#7A7A6E"></i>Overhead</span>
         <span><i style="background:#5FCB92"></i>Profit</span>
       </div>
 
@@ -187,11 +168,10 @@
   <button class="btn" id="btnLoad">Load order</button>
   <button class="btn" id="btnExport">Download JSON</button>
   <button class="btn" id="btnPrint">Print sheet</button>
-  <span class="grow"><span class="live">Actual GP <b id="barGp">—</b> · Sales value <b id="barNsv">—</b> · <span id="barVerdict">—</span></span></span>
+  <span class="grow"><span class="live">GP <b id="barGp">—</b> · Sales value <b id="barNsv">—</b> · <span id="barVerdict">—</span></span></span>
 </div>
 
 <datalist id="dlCustomers"></datalist>
-<datalist id="dlProducts"></datalist>
 <div class="toast" id="toast"></div>
 
 <script src="assets/engine.js"></script>
