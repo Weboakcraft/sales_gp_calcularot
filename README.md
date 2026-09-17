@@ -22,7 +22,7 @@ touch GP.
 
 | Level | Costs deducted | Result |
 |---|---|---|
-| **1** Production | material, hardware, fabric/foam, finishing, labour, packing, wastage, inward freight | **Gross profit** |
+| **1** Production | armrest, seat mechanism, base, wheels | **Gross profit** |
 | **2** Order-direct | outward freight, handling, transit insurance, installation, travel, samples, BIS/inspection, special packing — less anything billed to the customer | **Contribution** |
 | **3** Commercial | commission, dealer incentive, cash discount, working-capital cost, EMD blocking, bank guarantee, tender fees, marketplace charge, LD provision, warranty provision, bad debt, bank charges, non-creditable GST | **Net contribution** |
 | **4** Overhead | factory overhead absorption, admin, selling & marketing, depreciation | **Actual GP** |
@@ -38,8 +38,9 @@ Three decisions worth knowing about, because they are where most spreadsheets go
 - **TDS and TCS never reduce gross profit.** They are recoverable, so they belong in the
   cash-realisation block only. Treating them as cost understates every government order.
 
-Wastage and inward freight compound onto the *material* family only, not onto labour —
-you don't scrap wages.
+Production cost is the sum of exactly four costed parts — armrest, seat mechanism, base
+and wheels — taken at face value. No wastage or inward-freight loading is applied on top,
+so what you type is what the gross profit is measured against.
 
 ### Beyond the arithmetic
 
@@ -47,7 +48,7 @@ you don't scrap wages.
   fixed, then solves `NSV × (1 − v) − F = 0` rather than summing costs naively.
 - **Target-price solver.** Give it a target GP% and it returns the sales value needed, the
   price rise required, and the maximum discount that still lands on target.
-- **Stress sliders.** Extra discount, material inflation, labour inflation, freight rise —
+- **Stress sliders.** Extra discount, component-cost inflation, freight rise —
   each re-runs the whole model and shows the GP that survives.
 - **Approval routing.** GP% maps to a sign-off level from a table you control in the sheet.
 - **Validation.** Any line priced below its own production cost turns red and blocks saving.
@@ -62,14 +63,13 @@ formatting, conditional colour on the GP column, and sample master data.
 ### Masters — you maintain these
 
 **`Settings`** — `Key | Value | Notes`
-Ten rows: `companyName`, `orderPrefix`, `orderCounter`, `interestPct`, `pbgChargePct`,
-`targetGpPct`, `defaultGstPct`, `defaultWastagePct`, `defaultInwardPct`, `currency`.
+Eight rows: `companyName`, `orderPrefix`, `orderCounter`, `interestPct`, `pbgChargePct`,
+`targetGpPct`, `defaultGstPct`, `currency`.
 Yellow-filled cells are the ones to edit. `orderCounter` is bumped automatically.
 
-**`M_Products`** — 19 columns
-`SKU | Product Name | Category | UOM | List Price | Material Cost | Hardware Cost |
-Fabric/Foam Cost | Finishing Cost | Labour Cost | Packing Cost | Other Cost | Wastage % |
-Inward Freight % | CBM per Unit | Weight per Unit (kg) | GST % | HSN Code | Active`
+**`M_Products`** — 14 columns
+`SKU | Product Name | Category | UOM | List Price | Armrest Cost | Seat Mechanism Cost |
+Base Cost | Wheels Cost | CBM per Unit | Weight per Unit (kg) | GST % | HSN Code | Active`
 
 This drives the autofill. Type a product name in a line and every cost field populates.
 Set `Active = No` to retire an item without deleting its history.
@@ -100,9 +100,9 @@ hidden `Input JSON` column holding the complete input state so any order reloads
 analytics-ready as it stands — pivot it by salesperson, customer type, or channel with no
 further preparation.
 
-**`T_OrderLines`** — 27 columns, one row per line, FK `Order ID`, replaced on each save.
-Every cost component is stored separately rather than as a single COGS figure, so you can
-answer "what is fabric costing us across all sofa orders this quarter" directly.
+**`T_OrderLines`** — 22 columns, one row per line, FK `Order ID`, replaced on each save.
+Each of the four parts is stored separately rather than as a single COGS figure, so you can
+answer "what are seat mechanisms costing us across all chair orders this quarter" directly.
 
 **`T_OrderCosts`** — 5 columns, long format:
 `Order ID | Level | Cost Head | Amount | Scales With Revenue`
@@ -190,7 +190,7 @@ makes the maths straightforward to unit-test.
 
 ## 6. A caution on the numbers
 
-The overhead percentages, wastage rates and cost of funds shipped as defaults are
+The overhead percentages and cost of funds shipped as defaults are
 placeholders. Overhead absorption in particular decides whether an order reads as
 profitable, so derive it from your own trial balance — total factory overhead for the year
 divided by total production cost — before anyone quotes from this. Everything else is

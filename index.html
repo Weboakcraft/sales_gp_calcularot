@@ -72,7 +72,7 @@
     <article class="level">
       <div class="level-head">
         <span class="level-no">1</span>
-        <div><h2>Products &amp; production cost</h2><p>What you make, what you charge, what each unit truly costs to build.</p></div>
+        <div><h2>Products &amp; production cost</h2><p>What you make, what you charge, and what the four costed parts add up to per unit.</p></div>
         <div class="level-sum"><span id="sumL1">—</span><small>Gross profit</small></div>
       </div>
       <div class="level-body pad0">
@@ -81,17 +81,16 @@
             <thead>
               <tr>
                 <th colspan="6" class="grp" style="border-left:none">Sale</th>
-                <th colspan="7" class="grp">Cost per unit</th>
-                <th colspan="4" class="grp">Loading &amp; logistics inputs</th>
+                <th colspan="4" class="grp">Cost per unit</th>
+                <th colspan="2" class="grp">Loading &amp; logistics inputs</th>
                 <th colspan="4" class="grp">Result</th>
                 <th class="grp"></th>
               </tr>
               <tr>
                 <th class="l">Product</th><th class="l">Category</th>
                 <th>Qty</th><th>List price</th><th>Disc %</th><th>Net value</th>
-                <th>Material</th><th>Hardware</th><th>Fabric/foam</th><th>Finishing</th>
-                <th>Labour</th><th>Packing</th><th>Other</th>
-                <th>Waste %</th><th>Inward %</th><th>CBM/unit</th><th>Kg/unit</th>
+                <th>Armrest</th><th>Seat mechanism</th><th>Base</th><th>Wheels</th>
+                <th>CBM/unit</th><th>Kg/unit</th>
                 <th>Unit cost</th><th>Total cost</th><th>Line GP</th><th>GP %</th>
                 <th></th>
               </tr>
@@ -267,8 +266,7 @@
       <h3>What if things move against you</h3>
       <div style="padding:12px 14px 14px">
         <div class="slider"><label for="wDisc">Extra discount given</label><input type="range" id="wDisc" min="0" max="20" step="0.5" value="0"><output id="wDiscO">0.0 pts</output></div>
-        <div class="slider"><label for="wMat">Material cost rise</label><input type="range" id="wMat" min="0" max="30" step="1" value="0"><output id="wMatO">0%</output></div>
-        <div class="slider"><label for="wLab">Labour cost rise</label><input type="range" id="wLab" min="0" max="30" step="1" value="0"><output id="wLabO">0%</output></div>
+        <div class="slider"><label for="wMat">Component cost rise</label><input type="range" id="wMat" min="0" max="30" step="1" value="0"><output id="wMatO">0%</output></div>
         <div class="slider"><label for="wFrt">Freight rate rise</label><input type="range" id="wFrt" min="0" max="50" step="5" value="0"><output id="wFrtO">0%</output></div>
         <div class="whatif-out">
           <div><span>Stressed GP %</span><b id="wGpPct">—</b></div>
