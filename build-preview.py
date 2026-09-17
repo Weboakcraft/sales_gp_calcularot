@@ -23,26 +23,20 @@ window.addEventListener('load', function () {
     set('deliveryDate', new Date(Date.now() + 26 * 864e5).toISOString().slice(0, 10));
 
     var body = $('lineBody'); body.innerHTML = '';
-    [['Hurricane', 40, 10, 9800, 5200, 180, 240, ['Adjustable armrest', 320]],
-     ['Matrix HB', 12, 8, 14500, 7900, 220, 300, null],
-     ['Robo', 6, 5, 7400, 4100, 150, 210, null]].forEach(function (d) {
+    [['Hurricane', 40, 10, 9800, 850, 2200, 1650, 700],
+     ['Matrix HB', 12, 8, 14500, 1200, 3400, 2600, 900],
+     ['Robo', 6, 5, 7400, 500, 1500, 1100, 450]].forEach(function (d) {
       $('btnAddLine').click();
-      var tr = body.querySelectorAll('tr.line');
-      tr = tr[tr.length - 1];
-      var sel = tr.querySelector('[data-k=model]');
-      sel.value = d[0];
+      var rows = body.querySelectorAll('tr.line');
+      var tr = rows[rows.length - 1];
+      tr.querySelector('[data-k=model]').value = d[0];
       tr.querySelector('[data-k=qty]').value = d[1];
       tr.querySelector('[data-k=discPct]').value = d[2];
       tr.querySelector('[data-k=listPrice]').value = d[3];
-      tr.querySelector('[data-k=cStandard]').value = d[4];
-      tr.querySelector('[data-k=cPacking]').value = d[5];
-      tr.querySelector('[data-k=cFreight]').value = d[6];
-      if (d[7]) {
-        tr.querySelector('.add-btn').click();
-        var cr = body.querySelector('tr.cust[data-parent="' + tr.dataset.id + '"]');
-        cr.querySelector('[data-k=desc]').value = d[7][0];
-        cr.querySelector('[data-k=rate]').value = d[7][1];
-      }
+      tr.querySelector('[data-k=cArmrest]').value = d[4];
+      tr.querySelector('[data-k=cSeatMech]').value = d[5];
+      tr.querySelector('[data-k=cBase]').value = d[6];
+      tr.querySelector('[data-k=cWheels]').value = d[7];
     });
 
     set('gstPct', 18);

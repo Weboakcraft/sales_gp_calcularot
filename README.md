@@ -22,7 +22,7 @@ keeps GST out of the margin entirely.
 
 | Level | Costs deducted | Result |
 |---|---|---|
-| **1** BOM & rate | standard rate for the model, customisation, packing, freight | **Gross profit** |
+| **1** BOM & rate | armrest, seat mechanism, base, wheels | **Gross profit** |
 | **2** GST | GST at the applicable rate | Rate with GST — *deliberately excluded from GP* |
 
 One decision worth knowing about, because it is where most spreadsheets go wrong:
@@ -34,10 +34,10 @@ The engine still carries order-direct and commercial cost heads, and the saved s
 has columns for them, but the calculator no longer collects them, so contribution and net
 contribution simply equal gross profit.
 
-Pick a model and its standard rate, packing and freight come in from the master. Anything
-changed for that customer goes in as its own customisation line — a description and a rate —
-so the quote shows what the change actually cost. Nothing is loaded on top: BOM cost is
-`standard + customisation + packing + freight`, and gross profit is measured against that.
+Pick a model and the cost of its four parts comes in from the master. Nothing else is
+counted and nothing is loaded on top: BOM cost is `armrest + seat mechanism + base + wheels`,
+and gross profit is measured against that. Change a part for a particular customer and you
+type the new figure straight into that line.
 
 The ten models to start with: Hurricane, Matrix HB, Matrix MB, 01, 15 No., Butterfly, Robo,
 Pears, 07, Boom. Their rates ship as zero — fill them in the `M_Products` sheet.
@@ -66,12 +66,12 @@ Eight rows: `companyName`, `orderPrefix`, `orderCounter`, `interestPct`, `pbgCha
 `targetGpPct`, `defaultGstPct`, `currency`.
 Yellow-filled cells are the ones to edit. `orderCounter` is bumped automatically.
 
-**`M_Products`** — 10 columns
-`Model Code | Model Name | UOM | Sale Rate | Standard Rate | Packing | Freight | GST % |
-HSN Code | Active`
+**`M_Products`** — 11 columns
+`Model Code | Model Name | UOM | Sale Rate | Armrest Cost | Seat Mechanism Cost |
+Base Cost | Wheels Cost | GST % | HSN Code | Active`
 
-This drives the autofill. Pick a model in a line and sale rate, standard rate, packing and
-freight populate.
+This drives the autofill. Pick a model in a line and the sale rate and all four part costs
+populate.
 Set `Active = No` to retire an item without deleting its history.
 
 **`M_Customers`** — 12 columns
@@ -100,10 +100,9 @@ hidden `Input JSON` column holding the complete input state so any order reloads
 analytics-ready as it stands — pivot it by salesperson, customer type, or channel with no
 further preparation.
 
-**`T_OrderLines`** — 19 columns, one row per line, FK `Order ID`, replaced on each save.
-Standard rate, customisation, packing and freight are stored separately, and the
-customisation column carries the descriptions, so you can answer "what are we giving away
-in customisation on Matrix HB" directly.
+**`T_OrderLines`** — 18 columns, one row per line, FK `Order ID`, replaced on each save.
+Each of the four parts is stored separately rather than as a single COGS figure, so you can
+answer "what are seat mechanisms costing us across all Matrix HB orders" directly.
 
 **`T_OrderCosts`** — 5 columns, long format:
 `Order ID | Level | Cost Head | Amount | Scales With Revenue`
