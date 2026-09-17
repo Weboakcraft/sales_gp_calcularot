@@ -17,26 +17,23 @@ GitHub Pages (static)  ──POST──>  Apps Script /exec  ──>  Google She
 ## 1. What it calculates
 
 Most calculators stop at `price − material cost` and call it gross profit. That number is
-usually 15–20 points too optimistic. This one runs five levels and only the first four
+usually 15–20 points too optimistic. This one runs three levels and only the first two
 touch GP.
 
 | Level | Costs deducted | Result |
 |---|---|---|
 | **1** Production | armrest, seat mechanism, base, wheels | **Gross profit** |
-| **2** Order-direct | outward freight, handling, transit insurance, installation, travel, samples, BIS/inspection, special packing — less anything billed to the customer | **Contribution** |
-| **3** Commercial | commission, dealer incentive, cash discount, working-capital cost, EMD blocking, bank guarantee, tender fees, marketplace charge, LD provision, warranty provision, bad debt, bank charges, non-creditable GST | **Net contribution** |
-| **4** Overhead | factory overhead absorption, admin, selling & marketing, depreciation | **Actual GP** |
-| **5** Tax & cash | GST, GST TDS, income-tax TDS/TCS | Invoice value and net collection — *deliberately excluded from GP* |
+| **2** Overhead | factory overhead absorption, admin, selling & marketing, depreciation | **Actual GP** |
+| **3** Tax & cash | GST, GST TDS, income-tax TDS/TCS | Invoice value and net collection — *deliberately excluded from GP* |
 
-Three decisions worth knowing about, because they are where most spreadsheets go wrong:
+One decision worth knowing about, because it is where most spreadsheets go wrong:
 
-- **Freight billed to the customer is revenue, not a cost offset.** It sits in net sales value
-  and the freight you actually pay sits in Level 2. Netting them hides whether you are
-  recovering logistics or subsidising them.
-- **Working-capital cost runs on the receivable including GST**, not the taxable value.
-  You fund the whole invoice for the credit period, GST included.
 - **TDS and TCS never reduce gross profit.** They are recoverable, so they belong in the
   cash-realisation block only. Treating them as cost understates every government order.
+
+The engine still carries order-direct and commercial cost heads, and the saved sheet still
+has columns for them, but the calculator no longer collects them, so contribution and net
+contribution simply equal gross profit.
 
 Production cost is the sum of exactly four costed parts — armrest, seat mechanism, base
 and wheels — taken at face value. No wastage or inward-freight loading is applied on top,
@@ -48,10 +45,9 @@ so what you type is what the gross profit is measured against.
   fixed, then solves `NSV × (1 − v) − F = 0` rather than summing costs naively.
 - **Target-price solver.** Give it a target GP% and it returns the sales value needed, the
   price rise required, and the maximum discount that still lands on target.
-- **Stress sliders.** Extra discount, component-cost inflation, freight rise —
-  each re-runs the whole model and shows the GP that survives.
 - **Approval routing.** GP% maps to a sign-off level from a table you control in the sheet.
-- **Validation.** Any line priced below its own production cost turns red and blocks saving.
+- **Validation.** Any line priced below its own production cost turns red, and saving is
+  blocked until the error is fixed.
 
 ---
 

@@ -358,88 +358,8 @@ tr.under td{background:var(--risk-bg)}
     <article class="level">
       <div class="level-head">
         <span class="level-no">2</span>
-        <div><h2>Order-direct costs</h2><p>Everything spent to deliver this specific order, less whatever the customer pays back.</p></div>
-        <div class="level-sum"><span id="sumL2">—</span><small>Contribution</small></div>
-      </div>
-      <div class="level-body">
-        <p class="subhead">Freight &amp; handling</p>
-        <div class="grid g4">
-          <div class="f"><label for="freightMode">Freight charged on</label>
-            <select id="freightMode">
-              <option value="cbm">Per CBM</option><option value="kg">Per kg</option>
-              <option value="unit">Per unit</option><option value="pct">% of sales value</option>
-              <option value="lumpsum">Lump sum</option>
-            </select></div>
-          <div class="f"><label for="freightRate">Freight rate</label><input type="number" id="freightRate" value="0" step="0.01"><span class="hint" id="freightCalc">—</span></div>
-          <div class="f"><label for="handling">Loading &amp; unloading</label><input type="number" id="handling" value="0"></div>
-          <div class="f"><label for="insurancePct">Transit insurance %</label><input type="number" id="insurancePct" value="0" step="0.01"></div>
-        </div>
-        <p class="subhead">Installation &amp; site</p>
-        <div class="grid g4">
-          <div class="f"><label for="installMode">Installation charged on</label>
-            <select id="installMode">
-              <option value="unit">Per unit</option><option value="lumpsum">Lump sum</option><option value="pct">% of sales value</option>
-            </select></div>
-          <div class="f"><label for="installRate">Installation rate</label><input type="number" id="installRate" value="0" step="0.01"><span class="hint" id="installCalc">—</span></div>
-          <div class="f"><label for="travel">Travel, lodging, site visits</label><input type="number" id="travel" value="0"></div>
-          <div class="f"><label for="inspection">Inspection / BIS / lab testing</label><input type="number" id="inspection" value="0"></div>
-          <div class="f"><label for="sampleCost">Sample or prototype written off</label><input type="number" id="sampleCost" value="0"></div>
-          <div class="f"><label for="specialPacking">Special / export packing</label><input type="number" id="specialPacking" value="0"></div>
-          <div class="f"><label for="otherDirect">Other direct cost</label><input type="number" id="otherDirect" value="0"></div>
-        </div>
-        <p class="subhead">Recovered from the customer — these are billed, so they count as revenue</p>
-        <div class="grid g4">
-          <div class="f"><label for="freightBilled">Freight billed</label><input type="number" id="freightBilled" value="0"></div>
-          <div class="f"><label for="installBilled">Installation billed</label><input type="number" id="installBilled" value="0"></div>
-          <div class="f"><label for="packingBilled">Packing billed</label><input type="number" id="packingBilled" value="0"></div>
-          <div class="f"><label for="otherBilled">Other charges billed</label><input type="number" id="otherBilled" value="0"></div>
-        </div>
-      </div>
-    </article>
-
-    <!-- LEVEL 3 -->
-    <article class="level">
-      <div class="level-head">
-        <span class="level-no">3</span>
-        <div><h2>Commercial &amp; financial costs</h2><p>Commission, credit, guarantees, provisions — the money this order costs you off the invoice.</p></div>
-        <div class="level-sum"><span id="sumL3">—</span><small>Net contribution</small></div>
-      </div>
-      <div class="level-body">
-        <p class="subhead">Channel</p>
-        <div class="grid g4">
-          <div class="f"><label for="commissionPct">Sales commission %</label><input type="number" id="commissionPct" value="0" step="0.01"></div>
-          <div class="f"><label for="dealerIncentivePct">Dealer / channel incentive %</label><input type="number" id="dealerIncentivePct" value="0" step="0.01"></div>
-          <div class="f"><label for="cashDiscountPct">Cash discount %</label><input type="number" id="cashDiscountPct" value="0" step="0.01"></div>
-          <div class="f"><label for="gemChargePct">Marketplace / GeM charge %</label><input type="number" id="gemChargePct" value="0" step="0.01"></div>
-        </div>
-        <p class="subhead">Working capital &amp; guarantees</p>
-        <div class="grid g4">
-          <div class="f"><label for="interestPct">Cost of funds % p.a.</label><input type="number" id="interestPct" value="11" step="0.01"></div>
-          <div class="f"><label for="creditDays">Credit period (days)</label><input type="number" id="creditDays" value="0"><span class="hint" id="creditCalc">—</span></div>
-          <div class="f"><label for="emdAmount">EMD blocked</label><input type="number" id="emdAmount" value="0"></div>
-          <div class="f"><label for="emdDays">EMD blocked for (days)</label><input type="number" id="emdDays" value="0"></div>
-          <div class="f"><label for="pbgPct">Performance guarantee % of value</label><input type="number" id="pbgPct" value="0" step="0.01"></div>
-          <div class="f"><label for="pbgChargePct">Bank BG charge % p.a.</label><input type="number" id="pbgChargePct" value="1.5" step="0.01"></div>
-          <div class="f"><label for="pbgMonths">Guarantee tenure (months)</label><input type="number" id="pbgMonths" value="0"></div>
-          <div class="f"><label for="tenderFees">Tender / portal / document fees</label><input type="number" id="tenderFees" value="0"></div>
-        </div>
-        <p class="subhead">Risk provisions</p>
-        <div class="grid g4">
-          <div class="f"><label for="warrantyPct">Warranty &amp; service %</label><input type="number" id="warrantyPct" value="0" step="0.01"></div>
-          <div class="f"><label for="ldProvisionPct">Liquidated damages %</label><input type="number" id="ldProvisionPct" value="0" step="0.01"></div>
-          <div class="f"><label for="badDebtPct">Bad-debt provision %</label><input type="number" id="badDebtPct" value="0" step="0.01"></div>
-          <div class="f"><label for="bankChargePct">Bank &amp; payment charges %</label><input type="number" id="bankChargePct" value="0" step="0.01"></div>
-          <div class="f"><label for="itcLeakage">Non-creditable GST (ITC leakage)</label><input type="number" id="itcLeakage" value="0"></div>
-        </div>
-      </div>
-    </article>
-
-    <!-- LEVEL 4 -->
-    <article class="level">
-      <div class="level-head">
-        <span class="level-no">4</span>
         <div><h2>Overhead absorption</h2><p>This order's share of the factory and the office. Skip it and you are reading contribution, not profit.</p></div>
-        <div class="level-sum"><span id="sumL4">—</span><small>Actual GP</small></div>
+        <div class="level-sum"><span id="sumL2">—</span><small>Actual GP</small></div>
       </div>
       <div class="level-body">
         <div class="grid g4">
@@ -451,12 +371,12 @@ tr.under td{background:var(--risk-bg)}
       </div>
     </article>
 
-    <!-- LEVEL 5 -->
+    <!-- LEVEL 3 -->
     <article class="level">
       <div class="level-head">
-        <span class="level-no">5</span>
+        <span class="level-no">3</span>
         <div><h2>Tax &amp; cash realisation</h2><p>What you invoice and what actually lands in the bank. None of this changes gross profit.</p></div>
-        <div class="level-sum"><span id="sumL5">—</span><small>Net collection</small></div>
+        <div class="level-sum"><span id="sumL3">—</span><small>Net collection</small></div>
       </div>
       <div class="level-body">
         <div class="grid g4">
@@ -485,8 +405,6 @@ tr.under td{background:var(--risk-bg)}
       </div>
       <div class="fall-key">
         <span><i style="background:#8C7A5E"></i>Production</span>
-        <span><i style="background:#6E7F8C"></i>Direct</span>
-        <span><i style="background:#8C6E7F"></i>Commercial</span>
         <span><i style="background:#7A7A6E"></i>Overhead</span>
         <span><i style="background:#5FCB92"></i>Profit</span>
       </div>
@@ -507,26 +425,6 @@ tr.under td{background:var(--risk-bg)}
         </div>
         <div class="callout" id="solverNote">Set a target to see the price you need.</div>
       </div>
-    </div>
-
-    <div class="checks whatif">
-      <h3>What if things move against you</h3>
-      <div style="padding:12px 14px 14px">
-        <div class="slider"><label for="wDisc">Extra discount given</label><input type="range" id="wDisc" min="0" max="20" step="0.5" value="0"><output id="wDiscO">0.0 pts</output></div>
-        <div class="slider"><label for="wMat">Component cost rise</label><input type="range" id="wMat" min="0" max="30" step="1" value="0"><output id="wMatO">0%</output></div>
-        <div class="slider"><label for="wFrt">Freight rate rise</label><input type="range" id="wFrt" min="0" max="50" step="5" value="0"><output id="wFrtO">0%</output></div>
-        <div class="whatif-out">
-          <div><span>Stressed GP %</span><b id="wGpPct">—</b></div>
-          <div><span>Stressed GP</span><b id="wGpAbs">—</b></div>
-          <div><span>Change</span><b id="wDelta">—</b></div>
-        </div>
-        <button class="btn btn-sm" id="btnResetWhatif" style="margin-top:10px">Reset sliders</button>
-      </div>
-    </div>
-
-    <div class="checks">
-      <h3>Checks</h3>
-      <div id="checkList"></div>
     </div>
 
   </aside>
@@ -1056,25 +954,8 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
         name: v('custName'), type: v('custType'), gstin: v('custGstin'), state: v('custState')
       },
       lines: lines,
-      recovery: {
-        freightBilled: nv('freightBilled'), installBilled: nv('installBilled'),
-        packingBilled: nv('packingBilled'), otherBilled: nv('otherBilled')
-      },
-      l2: {
-        freightMode: v('freightMode'), freightRate: nv('freightRate'), handling: nv('handling'),
-        insurancePct: nv('insurancePct'), installMode: v('installMode'), installRate: nv('installRate'),
-        travel: nv('travel'), sampleCost: nv('sampleCost'), inspection: nv('inspection'),
-        specialPacking: nv('specialPacking'), otherDirect: nv('otherDirect')
-      },
-      l3: {
-        commissionPct: nv('commissionPct'), dealerIncentivePct: nv('dealerIncentivePct'),
-        cashDiscountPct: nv('cashDiscountPct'), interestPct: nv('interestPct'), creditDays: nv('creditDays'),
-        emdAmount: nv('emdAmount'), emdDays: nv('emdDays'), pbgPct: nv('pbgPct'),
-        pbgChargePct: nv('pbgChargePct'), pbgMonths: nv('pbgMonths'), tenderFees: nv('tenderFees'),
-        gemChargePct: nv('gemChargePct'), ldProvisionPct: nv('ldProvisionPct'),
-        warrantyPct: nv('warrantyPct'), badDebtPct: nv('badDebtPct'),
-        bankChargePct: nv('bankChargePct'), itcLeakage: nv('itcLeakage')
-      },
+      // levels 2 and 3 were removed from the sheet — nothing feeds them any more
+      recovery: {}, l2: {}, l3: {},
       l4: {
         factoryOhPct: nv('factoryOhPct'), adminOhPct: nv('adminOhPct'),
         sellingOhPct: nv('sellingOhPct'), depreciation: nv('depreciation')
@@ -1131,15 +1012,10 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
 
     /* level summaries */
     $('sumL1').textContent = money(T.grossProfit) + '  ' + pc(T.grossProfitPct);
-    $('sumL2').textContent = money(T.contribution) + '  ' + pc(T.contributionPct);
-    $('sumL3').textContent = money(T.netContribution) + '  ' + pc(T.netContributionPct);
-    $('sumL4').textContent = money(T.actualGP) + '  ' + pc(T.actualGPPct);
-    $('sumL5').textContent = money(T.netCollection);
+    $('sumL2').textContent = money(T.actualGP) + '  ' + pc(T.actualGPPct);
+    $('sumL3').textContent = money(T.netCollection);
 
     /* inline hints */
-    $('freightCalc').textContent = 'Works out to ' + money(headAmt(R, 'l2', 'Outward freight'));
-    $('installCalc').textContent = 'Works out to ' + money(headAmt(R, 'l2', 'Installation'));
-    $('creditCalc').textContent = 'Blocks ' + money(T.creditCost) + ' of interest';
     $('outGst').value = money2(T.gstTotal);
     $('outInvoice').value = money2(T.invoiceValue);
     $('outBreakeven').value = money(R.solver.breakEvenNSV);
@@ -1156,8 +1032,7 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
 
     /* waterfall */
     var segs = [
-      ['#8C7A5E', T.cogs], ['#6E7F8C', Math.max(0, T.totL2)],
-      ['#8C6E7F', Math.max(0, T.totL3)], ['#7A7A6E', Math.max(0, T.totL4)],
+      ['#8C7A5E', T.cogs], ['#7A7A6E', Math.max(0, T.totL4)],
       ['#5FCB92', Math.max(0, T.actualGP)]
     ];
     var span = segs.reduce(function (s, x) { return s + x[1]; }, 0) || 1;
@@ -1186,13 +1061,6 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
           (s.maxDiscountForTarget >= 0 ? pc(s.maxDiscountForTarget) : 'nothing — list price alone will not get there') + '</b>.')
       : 'Set a target to see the price you need.';
 
-    /* checks */
-    $('checkList').innerHTML = R.issues.length
-      ? R.issues.map(function (x) {
-          return '<div class="check ' + x.sev + '"><i></i><span>' + esc(x.msg) + '</span></div>';
-        }).join('')
-      : '<div class="check ok"><i style="background:var(--good)"></i><span>Everything checks out. Nothing is priced below cost and no threshold is breached.</span></div>';
-
     /* cash note */
     $('cashNote').innerHTML = T.nsv
       ? 'You invoice <b>' + money(T.invoiceValue) + '</b>. After <b>' + money(T.gstTds) +
@@ -1207,13 +1075,7 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
     $('barVerdict').textContent = T.nsv ? vd.level : '—';
     $('barVerdict').className = T.nsv ? (vd.tone === 'risk' ? 'neg' : (vd.tone === 'good' ? 'pos' : '')) : '';
 
-    runWhatIf(order, T);
     LAST = { order: order, result: R };
-  }
-
-  function headAmt(R, level, prefix) {
-    var h = R.heads[level].find(function (x) { return x.label.indexOf(prefix) === 0; });
-    return h ? h.amount : 0;
   }
 
   function ladderHTML(R) {
@@ -1228,38 +1090,9 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
     row('Net sales value, excluding GST', T.nsv, 'step', 100);
     row('Less production cost', -T.cogs, 'minor', T.cogsPct);
     row('Gross profit', T.grossProfit, 'step', T.grossProfitPct);
-    R.heads.l2.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
-    row('Contribution', T.contribution, 'step', T.contributionPct);
-    R.heads.l3.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
-    row('Net contribution', T.netContribution, 'step', T.netContributionPct);
     R.heads.l4.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
     row('Actual gross profit', T.actualGP, 'total', T.actualGPPct);
     return out.join('');
-  }
-
-  /* ---------- what-if ---------------------------------------------------- */
-  function runWhatIf(order, T) {
-    var sh = {
-      discountPts: +$('wDisc').value, materialPct: +$('wMat').value,
-      freightPct: +$('wFrt').value
-    };
-    $('wDiscO').textContent = sh.discountPts.toFixed(1) + ' pts';
-    $('wMatO').textContent = sh.materialPct + '%';
-    $('wFrtO').textContent = sh.freightPct + '%';
-
-    var any = sh.discountPts || sh.materialPct || sh.freightPct;
-    if (!any || !T.nsv) {
-      $('wGpPct').textContent = '—'; $('wGpAbs').textContent = '—';
-      $('wDelta').textContent = '—'; $('wDelta').className = '';
-      return;
-    }
-    var S = E.sensitivity(order, sh).totals;
-    var d = S.actualGP - T.actualGP;
-    $('wGpPct').textContent = pc(S.actualGPPct);
-    $('wGpPct').className = S.actualGPPct < 0 ? 'neg' : (S.actualGPPct >= 18 ? 'pos' : '');
-    $('wGpAbs').textContent = compact(S.actualGP);
-    $('wDelta').textContent = (d >= 0 ? '+' : '') + compact(d);
-    $('wDelta').className = d < 0 ? 'neg' : 'pos';
   }
 
   /* ---------- toast ------------------------------------------------------ */
@@ -1322,7 +1155,8 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
   function save() {
     if (!LAST) return;
     if (!LAST.result.valid) {
-      toast('Fix the errors in Checks before saving.', true); return;
+      var first = (LAST.result.issues.find(function (x) { return x.sev === 'error'; }) || {}).msg;
+      toast(first || 'Fix the errors before saving.', true); return;
     }
     if (!$('orderId').value.trim()) { toast('Give the order an ID first.', true); return; }
     var b = bundle();
@@ -1358,8 +1192,6 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
     }).join('');
     if (MASTERS.settings.companyName) $('brandCo').textContent = MASTERS.settings.companyName;
     var s = MASTERS.settings;
-    if (s.interestPct) $('interestPct').value = s.interestPct;
-    if (s.pbgChargePct) $('pbgChargePct').value = s.pbgChargePct;
     if (s.targetGpPct) $('targetGpPct').value = s.targetGpPct;
   }
 
@@ -1440,9 +1272,6 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
         seed[el.dataset.k] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
       });
       addLine(seed); recalc();
-    });
-    $('btnResetWhatif').addEventListener('click', function () {
-      ['wDisc', 'wMat', 'wFrt'].forEach(function (id) { $(id).value = 0; }); recalc();
     });
     $('btnSave').addEventListener('click', save);
     $('btnNew').addEventListener('click', newOrder);
