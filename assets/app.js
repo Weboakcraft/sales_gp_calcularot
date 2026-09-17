@@ -28,45 +28,69 @@
       defaultGstPct: 18
     },
     products: [
-      { sku: 'CH-EXE-01', name: 'Executive high-back chair', category: 'Office chair', uom: 'Nos', listPrice: 12000, cArmrest: 850, cSeatMech: 2200, cBase: 1650, cWheels: 700, cbmPerUnit: 0.35, weightPerUnit: 18, gstPct: 18 },
-      { sku: 'CH-TSK-02', name: 'Task chair with mesh back', category: 'Office chair', uom: 'Nos', listPrice: 6500, cArmrest: 420, cSeatMech: 1150, cBase: 780, cWheels: 380, cbmPerUnit: 0.22, weightPerUnit: 11, gstPct: 18 },
-      { sku: 'CH-VIS-03', name: 'Visitor chair, cantilever', category: 'Office chair', uom: 'Nos', listPrice: 4200, cArmrest: 380, cSeatMech: 0, cBase: 1100, cWheels: 0, cbmPerUnit: 0.18, weightPerUnit: 8, gstPct: 18 },
-      { sku: 'SF-3ST-01', name: 'Three-seater office sofa', category: 'Sofa', uom: 'Nos', listPrice: 38000, cArmrest: 2400, cSeatMech: 0, cBase: 14500, cWheels: 0, cbmPerUnit: 1.6, weightPerUnit: 62, gstPct: 18 },
-      { sku: 'SF-RCL-02', name: 'Single-seat recliner', category: 'Recliner', uom: 'Nos', listPrice: 29000, cArmrest: 1800, cSeatMech: 6200, cBase: 6400, cWheels: 0, cbmPerUnit: 0.95, weightPerUnit: 45, gstPct: 18 },
-      { sku: 'WS-4ST-01', name: 'Four-seater linear workstation', category: 'Workstation', uom: 'Set', listPrice: 48000, cArmrest: 0, cSeatMech: 0, cBase: 25600, cWheels: 0, cbmPerUnit: 1.8, weightPerUnit: 120, gstPct: 18 },
-      { sku: 'WS-6ST-02', name: 'Six-seater cluster workstation', category: 'Workstation', uom: 'Set', listPrice: 68000, cArmrest: 0, cSeatMech: 0, cBase: 36300, cWheels: 0, cbmPerUnit: 2.6, weightPerUnit: 172, gstPct: 18 },
-      { sku: 'TB-CNF-01', name: 'Eight-seat conference table', category: 'Table', uom: 'Nos', listPrice: 54000, cArmrest: 0, cSeatMech: 0, cBase: 30500, cWheels: 0, cbmPerUnit: 2.2, weightPerUnit: 140, gstPct: 18 },
-      { sku: 'TB-EXE-02', name: 'Executive desk with side unit', category: 'Table', uom: 'Nos', listPrice: 32000, cArmrest: 0, cSeatMech: 0, cBase: 18400, cWheels: 0, cbmPerUnit: 1.3, weightPerUnit: 82, gstPct: 18 },
-      { sku: 'ST-PED-01', name: 'Three-drawer mobile pedestal', category: 'Storage', uom: 'Nos', listPrice: 8500, cArmrest: 0, cSeatMech: 0, cBase: 3900, cWheels: 420, cbmPerUnit: 0.28, weightPerUnit: 24, gstPct: 18 }
+      { sku: 'HURRICANE', name: 'Hurricane', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
+      { sku: 'MATRIX-HB', name: 'Matrix HB', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
+      { sku: 'MATRIX-MB', name: 'Matrix MB', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
+      { sku: '01', name: '01', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
+      { sku: '15-NO', name: '15 No.', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
+      { sku: 'BUTTERFLY', name: 'Butterfly', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
+      { sku: 'ROBO', name: 'Robo', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
+      { sku: 'PEARS', name: 'Pears', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
+      { sku: '07', name: '07', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
+      { sku: 'BOOM', name: 'Boom', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 }
     ],
     customers: [],
     approvalMatrix: E.defaultApprovalMatrix
   };
 
-  var CATEGORIES = ['Office chair', 'Sofa', 'Recliner', 'Workstation', 'Table', 'Storage', 'Partition', 'Accessory', 'Other'];
-
   /* ---------- line rows -------------------------------------------------- */
   var NUMCOLS = [
     ['qty', 'w-xs', 1], ['listPrice', 'w-m', 0], ['discPct', 'w-xs', 0]
   ];
-  var COSTCOLS = ['cArmrest', 'cSeatMech', 'cBase', 'cWheels'];
-  var LOGCOLS = ['cbmPerUnit', 'weightPerUnit'];
+  var COSTCOLS = ['cStandard', 'cPacking', 'cFreight'];
+  var rowSeq = 0;
+
+  function modelOptions(sel) {
+    return '<option value="">Pick a model</option>' + MASTERS.products.map(function (p) {
+      return '<option' + (p.name === sel ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+    }).join('');
+  }
+
+  function custRowsOf(id) {
+    return [].slice.call($('lineBody').querySelectorAll('tr.cust[data-parent="' + id + '"]'));
+  }
+
+  function makeCustRow(id, seed) {
+    var d = seed || {};
+    var tr = document.createElement('tr');
+    tr.className = 'cust';
+    tr.dataset.parent = id;
+    tr.innerHTML =
+      '<td colspan="5" class="l"><span class="cust-tag">Customisation</span>' +
+      '<input class="w-l" data-k="desc" value="' + esc(d.desc || '') +
+      '" placeholder="What changed — e.g. adjustable armrest"></td>' +
+      '<td></td>' +
+      '<td><input type="number" class="w-s" data-k="rate" step="any" value="' + (d.rate || 0) + '"></td>' +
+      '<td colspan="7"><button class="x-btn" title="Remove this customisation" aria-label="Remove customisation">×</button></td>';
+    tr.querySelector('.x-btn').addEventListener('click', function () { tr.remove(); recalc(); });
+    return tr;
+  }
+
+  function addCustRow(tr, seed) {
+    var id = tr.dataset.id;
+    var rows = custRowsOf(id);
+    var after = rows.length ? rows[rows.length - 1] : tr;
+    after.parentNode.insertBefore(makeCustRow(id, seed), after.nextSibling);
+  }
 
   function makeRow(seed) {
     var d = seed || {};
     var tr = document.createElement('tr');
+    tr.className = 'line';
+    tr.dataset.id = 'L' + (++rowSeq);
     var cells = [];
 
-    // CBM and weight per unit stay in the model — outward freight can still be
-    // charged per CBM or per kg — but they are no longer shown as columns.
-    var hidden = LOGCOLS.map(function (k) {
-      return '<input type="number" style="display:none" data-k="' + k + '" value="' + (d[k] || 0) + '">';
-    }).join('');
-    cells.push('<td><input class="w-l" data-k="description" list="dlProducts" value="' +
-      esc(d.description || '') + '" placeholder="Type or pick a product">' + hidden + '</td>');
-    cells.push('<td><select class="w-m" data-k="category">' +
-      CATEGORIES.map(function (c) { return '<option' + (c === (d.category || 'Office chair') ? ' selected' : '') + '>' + c + '</option>'; }).join('') +
-      '</select></td>');
+    cells.push('<td><select class="w-l" data-k="model">' + modelOptions(d.model) + '</select></td>');
 
     NUMCOLS.forEach(function (c) {
       cells.push('<td><input type="number" class="' + c[1] + '" data-k="' + c[0] +
@@ -74,55 +98,78 @@
     });
     cells.push('<td class="cell-out" data-out="netValue">—</td>');
 
-    COSTCOLS.forEach(function (k) {
-      cells.push('<td><input type="number" class="w-s" data-k="' + k + '" step="any" min="0" value="' + (d[k] || 0) + '"></td>');
-    });
+    cells.push('<td><input type="number" class="w-s" data-k="cStandard" step="any" min="0" value="' + (d.cStandard || 0) + '"></td>');
+    cells.push('<td class="cell-out" data-out="custTotal">—</td>');
+    cells.push('<td><input type="number" class="w-s" data-k="cPacking" step="any" min="0" value="' + (d.cPacking || 0) + '"></td>');
+    cells.push('<td><input type="number" class="w-s" data-k="cFreight" step="any" min="0" value="' + (d.cFreight || 0) + '"></td>');
 
     cells.push('<td class="cell-out" data-out="unitCogs">—</td>');
     cells.push('<td class="cell-out" data-out="cogs">—</td>');
     cells.push('<td class="cell-out" data-out="gp">—</td>');
     cells.push('<td class="cell-out" data-out="gpPct">—</td>');
-    cells.push('<td><button class="x-btn" title="Remove this line" aria-label="Remove line">×</button></td>');
+    cells.push('<td class="row-acts">' +
+      '<button class="add-btn" title="Add a customisation" aria-label="Add customisation">+</button>' +
+      '<button class="x-btn" title="Remove this line" aria-label="Remove line">×</button></td>');
 
     tr.innerHTML = cells.join('');
-    tr.dataset.gst = d.gstPct || MASTERS.settings.defaultGstPct;
     tr.dataset.sku = d.sku || '';
     tr.querySelector('.x-btn').addEventListener('click', function () {
-      tr.remove(); if (!$('lineBody').children.length) addLine(); recalc();
+      custRowsOf(tr.dataset.id).forEach(function (c) { c.remove(); });
+      tr.remove();
+      if (!$('lineBody').querySelector('tr.line')) addLine();
+      recalc();
     });
-    // product master autofill
-    var nameInput = tr.querySelector('[data-k=description]');
-    nameInput.addEventListener('change', function () {
-      var hit = MASTERS.products.find(function (p) {
-        return p.name === nameInput.value || p.sku === nameInput.value ||
-          (p.sku + ' — ' + p.name) === nameInput.value;
-      });
-      if (!hit) return;
-      nameInput.value = hit.name;
-      tr.dataset.sku = hit.sku; tr.dataset.gst = hit.gstPct;
-      tr.querySelector('[data-k=category]').value = hit.category;
-      ['listPrice'].concat(COSTCOLS, LOGCOLS).forEach(function (k) {
+    tr.querySelector('.add-btn').addEventListener('click', function () { addCustRow(tr); recalc(); });
+
+    // model master autofill — standard rate, packing and freight for that model
+    var modelSel = tr.querySelector('[data-k=model]');
+    modelSel.addEventListener('change', function () {
+      var hit = MASTERS.products.find(function (p) { return p.name === modelSel.value; });
+      if (!hit) { tr.dataset.sku = ''; return; }
+      tr.dataset.sku = hit.sku;
+      ['listPrice'].concat(COSTCOLS).forEach(function (k) {
         var el = tr.querySelector('[data-k=' + k + ']');
         if (el && hit[k] !== undefined) el.value = hit[k];
       });
       recalc();
     });
+    (d.customs || []).forEach(function (c) { addCustRowLater(tr, c); });
     return tr;
   }
+
+  // customisation rows can only be inserted once the line row is in the table
+  var pending = [];
+  function addCustRowLater(tr, c) { pending.push([tr, c]); }
+  function flushCustRows() {
+    pending.forEach(function (x) { addCustRow(x[0], x[1]); });
+    pending = [];
+  }
+
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
 
-  function addLine(seed) { $('lineBody').appendChild(makeRow(seed)); }
+  function addLine(seed) { $('lineBody').appendChild(makeRow(seed)); flushCustRows(); }
 
   /* ---------- read the whole form into an order object ------------------- */
   function v(id) { var el = $(id); return el ? el.value : ''; }
   function nv(id) { return parseFloat(v(id)) || 0; }
 
   function readOrder() {
-    var lines = [].map.call($('lineBody').children, function (tr) {
-      var o = { gstPct: +tr.dataset.gst || 18, sku: tr.dataset.sku || '' };
+    var gst = nv('gstPct');
+    var lines = [].filter.call($('lineBody').children, function (tr) {
+      return tr.classList.contains('line');
+    }).map(function (tr) {
+      var o = { gstPct: gst, sku: tr.dataset.sku || '' };
       [].forEach.call(tr.querySelectorAll('[data-k]'), function (el) {
         o[el.dataset.k] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
       });
+      o.customs = custRowsOf(tr.dataset.id).map(function (cr) {
+        return {
+          desc: cr.querySelector('[data-k=desc]').value,
+          rate: parseFloat(cr.querySelector('[data-k=rate]').value) || 0
+        };
+      });
+      o.cCustom = o.customs.reduce(function (a, c) { return a + c.rate; }, 0);
+      o.description = o.model;
       return o;
     });
     return {
@@ -136,11 +183,8 @@
       lines: lines,
       // levels 2 and 3 were removed from the sheet — nothing feeds them any more
       recovery: {}, l2: {}, l3: {},
-      l4: {
-        factoryOhPct: nv('factoryOhPct'), adminOhPct: nv('adminOhPct'),
-        sellingOhPct: nv('sellingOhPct'), depreciation: nv('depreciation')
-      },
-      tax: { gstTdsPct: nv('gstTdsPct'), tcsPct: nv('tcsPct') },
+      l4: {},
+      tax: {},
       targetGpPct: nv('targetGpPct'),
       approvalMatrix: MASTERS.approvalMatrix
     };
@@ -153,6 +197,7 @@
     set('orderId', m.orderId); set('orderDate', m.orderDate); set('deliveryDate', m.deliveryDate);
     set('orderStatus', m.status); set('salesperson', m.salesperson); set('channel', m.channel);
     set('custName', c.name); set('custType', c.type); set('custGstin', c.gstin); set('custState', c.state);
+    set('gstPct', (o.lines && o.lines[0] && o.lines[0].gstPct) || 18);
     ['recovery', 'l2', 'l3', 'l4', 'tax'].forEach(function (grp) {
       Object.keys(o[grp] || {}).forEach(function (k) { set(k, o[grp][k]); });
     });
@@ -169,10 +214,13 @@
     var T = R.totals;
 
     /* line outputs */
-    [].forEach.call($('lineBody').children, function (tr, i) {
+    [].filter.call($('lineBody').children, function (tr) {
+      return tr.classList.contains('line');
+    }).forEach(function (tr, i) {
       var r = R.lines[i]; if (!r) return;
       var put = function (k, txt) { var c = tr.querySelector('[data-out=' + k + ']'); if (c) c.textContent = txt; };
       put('netValue', money(r.netRevenue));
+      put('custTotal', r.unitCustom ? money(r.unitCustom) : '—');
       put('unitCogs', money(r.unitCogs));
       put('cogs', money(r.cogs));
       put('gp', money(r.gp));
@@ -185,17 +233,16 @@
 
     /* footers */
     $('ftQty').textContent = inr.format(T.qty);
-    $('ftCbm').textContent = T.cbm.toFixed(2);
-    $('ftKg').textContent = inr.format(Math.round(T.weight));
+    $('ftCust').textContent = money(T.customisation);
     $('ftGross').textContent = money(T.grossValue);
     $('ftDisc').textContent = money(T.totalDiscount) + ' (' + pc(T.discountPct) + ')';
 
     /* level summaries */
     $('sumL1').textContent = money(T.grossProfit) + '  ' + pc(T.grossProfitPct);
-    $('sumL2').textContent = money(T.actualGP) + '  ' + pc(T.actualGPPct);
-    $('sumL3').textContent = money(T.netCollection);
+    $('sumL2').textContent = money(T.invoiceValue);
 
     /* inline hints */
+    $('outNoGst').value = money2(T.nsv);
     $('outGst').value = money2(T.gstTotal);
     $('outInvoice').value = money2(T.invoiceValue);
     $('outBreakeven').value = money(R.solver.breakEvenNSV);
@@ -207,13 +254,12 @@
     fig.className = 'gp-figure ' + (T.nsv ? tone : '');
     $('gpAbs').textContent = money(T.actualGP);
     $('gpSub').textContent = T.nsv
-      ? 'on ' + compact(T.nsv) + ' sales value · ' + money(T.gpPerUnit) + ' per unit'
+      ? 'on ' + compact(T.nsv) + ' without GST · ' + money(T.gpPerUnit) + ' per unit'
       : 'on nil sales value';
 
     /* waterfall */
     var segs = [
-      ['#8C7A5E', T.cogs], ['#7A7A6E', Math.max(0, T.totL4)],
-      ['#5FCB92', Math.max(0, T.actualGP)]
+      ['#8C7A5E', T.cogs], ['#5FCB92', Math.max(0, T.actualGP)]
     ];
     var span = segs.reduce(function (s, x) { return s + x[1]; }, 0) || 1;
     $('fall').innerHTML = segs.map(function (s) {
@@ -241,14 +287,6 @@
           (s.maxDiscountForTarget >= 0 ? pc(s.maxDiscountForTarget) : 'nothing — list price alone will not get there') + '</b>.')
       : 'Set a target to see the price you need.';
 
-    /* cash note */
-    $('cashNote').innerHTML = T.nsv
-      ? 'You invoice <b>' + money(T.invoiceValue) + '</b>. After <b>' + money(T.gstTds) +
-        '</b> GST TDS and <b>' + money(T.incomeTds) + '</b> income-tax deduction, <b>' + money(T.netCollection) +
-        '</b> reaches the bank — and a performance guarantee of <b>' + money(T.pbgValue) +
-        '</b> stays blocked. Deductions are recoverable, so they never touch gross profit.'
-      : 'Enter an order to see the realisation summary.';
-
     /* action bar */
     $('barGp').textContent = T.nsv ? money(T.actualGP) + ' (' + pc(T.actualGPPct) + ')' : '—';
     $('barNsv').textContent = T.nsv ? compact(T.nsv) : '—';
@@ -267,11 +305,11 @@
     row('Gross order value', T.grossValue, 'step');
     if (T.totalDiscount) row('Less discount', -T.totalDiscount, 'minor', T.discountPct);
     if (T.recovery) row('Add freight, installation & other billed', T.recovery, 'minor');
-    row('Net sales value, excluding GST', T.nsv, 'step', 100);
-    row('Less production cost', -T.cogs, 'minor', T.cogsPct);
-    row('Gross profit', T.grossProfit, 'step', T.grossProfitPct);
-    R.heads.l4.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
-    row('Actual gross profit', T.actualGP, 'total', T.actualGPPct);
+    row('Rate without GST', T.nsv, 'step', 100);
+    row('Less BOM cost', -T.cogs, 'minor', T.cogsPct);
+    row('Gross profit', T.grossProfit, 'total', T.grossProfitPct);
+    row('GST on the order', T.gstTotal, 'minor');
+    row('Rate with GST', T.invoiceValue, 'step');
     return out.join('');
   }
 
@@ -315,10 +353,11 @@
         var r = R.lines[i];
         return {
           orderId: order.meta.orderId, lineNo: i + 1, sku: l.sku, description: l.description,
-          category: l.category, qty: l.qty, listPrice: l.listPrice, discPct: l.discPct,
+          qty: l.qty, listPrice: l.listPrice, discPct: l.discPct,
           netValue: r.netRevenue, unitNetPrice: r.unitNetPrice,
-          cArmrest: l.cArmrest, cSeatMech: l.cSeatMech, cBase: l.cBase, cWheels: l.cWheels,
-          cbmPerUnit: l.cbmPerUnit, weightPerUnit: l.weightPerUnit,
+          model: l.model, cStandard: l.cStandard, cCustom: l.cCustom,
+          customisationDetail: (l.customs || []).map(function (c) { return c.desc + ' ' + c.rate; }).join('; '),
+          cPacking: l.cPacking, cFreight: l.cFreight,
           unitCost: r.unitCogs, totalCost: r.cogs, lineGP: r.gp, lineGPPct: r.gpPct,
           gstPct: l.gstPct, gstAmount: r.gstAmt
         };
@@ -364,9 +403,9 @@
     if (m.customers) MASTERS.customers = m.customers;
     if (m.approvalMatrix && m.approvalMatrix.length) MASTERS.approvalMatrix = m.approvalMatrix;
 
-    $('dlProducts').innerHTML = MASTERS.products.map(function (p) {
-      return '<option value="' + esc(p.name) + '">' + esc(p.sku + ' · ' + p.category) + '</option>';
-    }).join('');
+    [].forEach.call(document.querySelectorAll('[data-k=model]'), function (sel) {
+      sel.innerHTML = modelOptions(sel.value);
+    });
     $('dlCustomers').innerHTML = MASTERS.customers.map(function (c) {
       return '<option value="' + esc(c.name) + '">' + esc(c.type || '') + '</option>';
     }).join('');
@@ -445,11 +484,14 @@
       $('lineBody').innerHTML = ''; addLine(); recalc();
     });
     $('btnDuplicate').addEventListener('click', function () {
-      var rows = $('lineBody').children;
+      var rows = $('lineBody').querySelectorAll('tr.line');
       if (!rows.length) return addLine();
-      var last = rows[rows.length - 1], seed = { gstPct: +last.dataset.gst, sku: last.dataset.sku };
+      var last = rows[rows.length - 1], seed = { sku: last.dataset.sku };
       [].forEach.call(last.querySelectorAll('[data-k]'), function (el) {
         seed[el.dataset.k] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
+      });
+      seed.customs = custRowsOf(last.dataset.id).map(function (cr) {
+        return { desc: cr.querySelector('[data-k=desc]').value, rate: parseFloat(cr.querySelector('[data-k=rate]').value) || 0 };
       });
       addLine(seed); recalc();
     });
