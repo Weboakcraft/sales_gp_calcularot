@@ -20,8 +20,8 @@ var ORDER_PREFIX = 'ORD';
 var SCHEMA = {
   Settings: ['Key', 'Value', 'Notes'],
 
-  M_Products: ['Model Code', 'Model Name', 'UOM', 'Sale Rate', 'Standard Rate',
-    'Packing', 'Freight', 'GST %', 'HSN Code', 'Active'],
+  M_Products: ['Model Code', 'Model Name', 'UOM', 'Sale Rate', 'Armrest Cost',
+    'Seat Mechanism Cost', 'Base Cost', 'Wheels Cost', 'GST %', 'HSN Code', 'Active'],
 
   M_Customers: ['Customer Code', 'Customer Name', 'Customer Type', 'GSTIN', 'State',
     'City', 'Credit Days', 'Default Discount %', 'Sales Commission %', 'Credit Limit',
@@ -47,7 +47,7 @@ var SCHEMA = {
 
   T_OrderLines: ['Order ID', 'Line No', 'Model Code', 'Description', 'Qty',
     'Sale Rate', 'Discount %', 'Net Line Value', 'Unit Net Price',
-    'Model', 'Standard Rate', 'Customisation', 'Customisation Detail', 'Packing', 'Freight',
+    'Model', 'Armrest', 'Seat Mechanism', 'Base', 'Wheels',
     'Unit Cost', 'Total Line Cost', 'Line GP', 'Line GP %', 'GST %', 'GST Amount'],
 
   T_OrderCosts: ['Order ID', 'Level', 'Cost Head', 'Amount', 'Scales With Revenue'],
@@ -71,7 +71,7 @@ var ORDER_KEYS = ['orderId', 'orderDate', 'deliveryDate', 'status', 'salesperson
 
 var LINE_KEYS = ['orderId', 'lineNo', 'sku', 'description', 'qty',
   'listPrice', 'discPct', 'netValue', 'unitNetPrice',
-  'model', 'cStandard', 'cCustom', 'customisationDetail', 'cPacking', 'cFreight',
+  'model', 'cArmrest', 'cSeatMech', 'cBase', 'cWheels',
   'unitCost', 'totalCost', 'lineGP', 'lineGPPct', 'gstPct', 'gstAmount'];
 
 var COST_KEYS = ['orderId', 'level', 'head', 'amount', 'scalesWithRevenue'];
@@ -143,20 +143,20 @@ function seedApprovalMatrix(ss) {
 
 function seedProducts(ss) {
   var rows = [
-    ['HURRICANE', 'Hurricane', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['MATRIX-HB', 'Matrix HB', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['MATRIX-MB', 'Matrix MB', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['01', '01', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['15-NO', '15 No.', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['BUTTERFLY', 'Butterfly', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['ROBO', 'Robo', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['PEARS', 'Pears', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['07', '07', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['BOOM', 'Boom', 'Nos', 0, 0, 0, 0, 18, '9401', 'Yes']
+    ['HURRICANE', 'Hurricane', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['MATRIX-HB', 'Matrix HB', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['MATRIX-MB', 'Matrix MB', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['01', '01', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['15-NO', '15 No.', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['BUTTERFLY', 'Butterfly', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['ROBO', 'Robo', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['PEARS', 'Pears', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['07', '07', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
+    ['BOOM', 'Boom', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes']
   ];
   var sh = ss.getSheetByName('M_Products');
   sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
-  sh.getRange(2, 4, rows.length, 4).setNumberFormat('#,##0.00');
+  sh.getRange(2, 4, rows.length, 5).setNumberFormat('#,##0.00');
   sh.setColumnWidth(2, 230);
   sh.getRange(rows.length + 3, 1).setValue(
     'Edit these rows freely — the calculator loads them as its product master. Keep Active = Yes for anything you still sell.');
@@ -279,12 +279,12 @@ function bootstrap() {
   });
 
   var products = readTable('M_Products')
-    .filter(function (r) { return String(r[9]).toLowerCase() !== 'no'; })
+    .filter(function (r) { return String(r[10]).toLowerCase() !== 'no'; })
     .map(function (r) {
       return {
         sku: r[0], name: r[1], uom: r[2], listPrice: +r[3] || 0,
-        cStandard: +r[4] || 0, cPacking: +r[5] || 0, cFreight: +r[6] || 0,
-        gstPct: +r[7] || 18, hsn: r[8]
+        cArmrest: +r[4] || 0, cSeatMech: +r[5] || 0, cBase: +r[6] || 0, cWheels: +r[7] || 0,
+        gstPct: +r[8] || 18, hsn: r[9]
       };
     });
 
