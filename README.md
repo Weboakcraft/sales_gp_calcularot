@@ -25,14 +25,10 @@ keeps GST out of the margin entirely.
 | **1** BOM & rate | armrest, seat mechanism, base, wheels | **Gross profit** |
 | **2** GST | GST at the applicable rate | Rate with GST — *deliberately excluded from GP* |
 
-One decision worth knowing about, because it is where most spreadsheets go wrong:
-
-- **TDS and TCS never reduce gross profit.** They are recoverable, so they belong in the
-  cash-realisation block only. Treating them as cost understates every government order.
-
-The engine still carries order-direct and commercial cost heads, and the saved sheet still
-has columns for them, but the calculator no longer collects them, so contribution and net
-contribution simply equal gross profit.
+GST is worked out on the side and never reduces gross profit. The engine still carries
+order-direct, commercial and overhead cost heads, and the saved sheet still has columns for
+them, but the calculator no longer collects any of them, so contribution, net contribution
+and actual GP all equal gross profit.
 
 Pick a model and the cost of its four parts comes in from the master. Nothing else is
 counted and nothing is loaded on top: BOM cost is `armrest + seat mechanism + base + wheels`,
@@ -163,7 +159,7 @@ Fill top to bottom. The right-hand panel recalculates on every keystroke — the
 is actual GP%, and its colour is the approval verdict.
 
 - **Add line** or **Duplicate last line** for similar items
-- Type a product name to autofill all ten cost fields from the master
+- Pick a model to autofill the sale rate and all four part costs from the master
 - **Ctrl/Cmd + S** saves · **Ctrl/Cmd + Enter** adds a line
 - **Print sheet** produces a clean approval note with the ladder intact
 - **Download JSON** exports the full bundle for email or archive
@@ -178,6 +174,9 @@ team can quote offline and sync later.
 - **New cost head:** add the input to `index.html`, read it in `readOrder()` in `app.js`,
   and push it in the right level inside `compute()` in `engine.js`. `T_OrderCosts` needs no
   change — long format absorbs it.
+- **After editing anything in `assets/`:** bump the `?v=` number on that tag in `index.html`.
+  Browsers cache those files hard, and a half-updated page looks broken in ways the code is
+  not responsible for.
 - **Different approval thresholds:** edit `M_ApprovalMatrix`. No code change.
 - **Per-category overhead rates:** add a column to `M_Products` and read it in `bootstrap()`.
 - **Costing by BOM instead of standard cost:** add an `M_BOM` sheet keyed on SKU and resolve
