@@ -134,25 +134,8 @@
         name: v('custName'), type: v('custType'), gstin: v('custGstin'), state: v('custState')
       },
       lines: lines,
-      recovery: {
-        freightBilled: nv('freightBilled'), installBilled: nv('installBilled'),
-        packingBilled: nv('packingBilled'), otherBilled: nv('otherBilled')
-      },
-      l2: {
-        freightMode: v('freightMode'), freightRate: nv('freightRate'), handling: nv('handling'),
-        insurancePct: nv('insurancePct'), installMode: v('installMode'), installRate: nv('installRate'),
-        travel: nv('travel'), sampleCost: nv('sampleCost'), inspection: nv('inspection'),
-        specialPacking: nv('specialPacking'), otherDirect: nv('otherDirect')
-      },
-      l3: {
-        commissionPct: nv('commissionPct'), dealerIncentivePct: nv('dealerIncentivePct'),
-        cashDiscountPct: nv('cashDiscountPct'), interestPct: nv('interestPct'), creditDays: nv('creditDays'),
-        emdAmount: nv('emdAmount'), emdDays: nv('emdDays'), pbgPct: nv('pbgPct'),
-        pbgChargePct: nv('pbgChargePct'), pbgMonths: nv('pbgMonths'), tenderFees: nv('tenderFees'),
-        gemChargePct: nv('gemChargePct'), ldProvisionPct: nv('ldProvisionPct'),
-        warrantyPct: nv('warrantyPct'), badDebtPct: nv('badDebtPct'),
-        bankChargePct: nv('bankChargePct'), itcLeakage: nv('itcLeakage')
-      },
+      // levels 2 and 3 were removed from the sheet — nothing feeds them any more
+      recovery: {}, l2: {}, l3: {},
       l4: {
         factoryOhPct: nv('factoryOhPct'), adminOhPct: nv('adminOhPct'),
         sellingOhPct: nv('sellingOhPct'), depreciation: nv('depreciation')
@@ -209,15 +192,10 @@
 
     /* level summaries */
     $('sumL1').textContent = money(T.grossProfit) + '  ' + pc(T.grossProfitPct);
-    $('sumL2').textContent = money(T.contribution) + '  ' + pc(T.contributionPct);
-    $('sumL3').textContent = money(T.netContribution) + '  ' + pc(T.netContributionPct);
-    $('sumL4').textContent = money(T.actualGP) + '  ' + pc(T.actualGPPct);
-    $('sumL5').textContent = money(T.netCollection);
+    $('sumL2').textContent = money(T.actualGP) + '  ' + pc(T.actualGPPct);
+    $('sumL3').textContent = money(T.netCollection);
 
     /* inline hints */
-    $('freightCalc').textContent = 'Works out to ' + money(headAmt(R, 'l2', 'Outward freight'));
-    $('installCalc').textContent = 'Works out to ' + money(headAmt(R, 'l2', 'Installation'));
-    $('creditCalc').textContent = 'Blocks ' + money(T.creditCost) + ' of interest';
     $('outGst').value = money2(T.gstTotal);
     $('outInvoice').value = money2(T.invoiceValue);
     $('outBreakeven').value = money(R.solver.breakEvenNSV);
@@ -234,8 +212,7 @@
 
     /* waterfall */
     var segs = [
-      ['#8C7A5E', T.cogs], ['#6E7F8C', Math.max(0, T.totL2)],
-      ['#8C6E7F', Math.max(0, T.totL3)], ['#7A7A6E', Math.max(0, T.totL4)],
+      ['#8C7A5E', T.cogs], ['#7A7A6E', Math.max(0, T.totL4)],
       ['#5FCB92', Math.max(0, T.actualGP)]
     ];
     var span = segs.reduce(function (s, x) { return s + x[1]; }, 0) || 1;
@@ -264,13 +241,6 @@
           (s.maxDiscountForTarget >= 0 ? pc(s.maxDiscountForTarget) : 'nothing — list price alone will not get there') + '</b>.')
       : 'Set a target to see the price you need.';
 
-    /* checks */
-    $('checkList').innerHTML = R.issues.length
-      ? R.issues.map(function (x) {
-          return '<div class="check ' + x.sev + '"><i></i><span>' + esc(x.msg) + '</span></div>';
-        }).join('')
-      : '<div class="check ok"><i style="background:var(--good)"></i><span>Everything checks out. Nothing is priced below cost and no threshold is breached.</span></div>';
-
     /* cash note */
     $('cashNote').innerHTML = T.nsv
       ? 'You invoice <b>' + money(T.invoiceValue) + '</b>. After <b>' + money(T.gstTds) +
@@ -285,13 +255,7 @@
     $('barVerdict').textContent = T.nsv ? vd.level : '—';
     $('barVerdict').className = T.nsv ? (vd.tone === 'risk' ? 'neg' : (vd.tone === 'good' ? 'pos' : '')) : '';
 
-    runWhatIf(order, T);
     LAST = { order: order, result: R };
-  }
-
-  function headAmt(R, level, prefix) {
-    var h = R.heads[level].find(function (x) { return x.label.indexOf(prefix) === 0; });
-    return h ? h.amount : 0;
   }
 
   function ladderHTML(R) {
@@ -306,38 +270,9 @@
     row('Net sales value, excluding GST', T.nsv, 'step', 100);
     row('Less production cost', -T.cogs, 'minor', T.cogsPct);
     row('Gross profit', T.grossProfit, 'step', T.grossProfitPct);
-    R.heads.l2.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
-    row('Contribution', T.contribution, 'step', T.contributionPct);
-    R.heads.l3.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
-    row('Net contribution', T.netContribution, 'step', T.netContributionPct);
     R.heads.l4.forEach(function (h) { row(h.label, -h.amount, 'minor'); });
     row('Actual gross profit', T.actualGP, 'total', T.actualGPPct);
     return out.join('');
-  }
-
-  /* ---------- what-if ---------------------------------------------------- */
-  function runWhatIf(order, T) {
-    var sh = {
-      discountPts: +$('wDisc').value, materialPct: +$('wMat').value,
-      freightPct: +$('wFrt').value
-    };
-    $('wDiscO').textContent = sh.discountPts.toFixed(1) + ' pts';
-    $('wMatO').textContent = sh.materialPct + '%';
-    $('wFrtO').textContent = sh.freightPct + '%';
-
-    var any = sh.discountPts || sh.materialPct || sh.freightPct;
-    if (!any || !T.nsv) {
-      $('wGpPct').textContent = '—'; $('wGpAbs').textContent = '—';
-      $('wDelta').textContent = '—'; $('wDelta').className = '';
-      return;
-    }
-    var S = E.sensitivity(order, sh).totals;
-    var d = S.actualGP - T.actualGP;
-    $('wGpPct').textContent = pc(S.actualGPPct);
-    $('wGpPct').className = S.actualGPPct < 0 ? 'neg' : (S.actualGPPct >= 18 ? 'pos' : '');
-    $('wGpAbs').textContent = compact(S.actualGP);
-    $('wDelta').textContent = (d >= 0 ? '+' : '') + compact(d);
-    $('wDelta').className = d < 0 ? 'neg' : 'pos';
   }
 
   /* ---------- toast ------------------------------------------------------ */
@@ -400,7 +335,8 @@
   function save() {
     if (!LAST) return;
     if (!LAST.result.valid) {
-      toast('Fix the errors in Checks before saving.', true); return;
+      var first = (LAST.result.issues.find(function (x) { return x.sev === 'error'; }) || {}).msg;
+      toast(first || 'Fix the errors before saving.', true); return;
     }
     if (!$('orderId').value.trim()) { toast('Give the order an ID first.', true); return; }
     var b = bundle();
@@ -436,8 +372,6 @@
     }).join('');
     if (MASTERS.settings.companyName) $('brandCo').textContent = MASTERS.settings.companyName;
     var s = MASTERS.settings;
-    if (s.interestPct) $('interestPct').value = s.interestPct;
-    if (s.pbgChargePct) $('pbgChargePct').value = s.pbgChargePct;
     if (s.targetGpPct) $('targetGpPct').value = s.targetGpPct;
   }
 
@@ -518,9 +452,6 @@
         seed[el.dataset.k] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
       });
       addLine(seed); recalc();
-    });
-    $('btnResetWhatif').addEventListener('click', function () {
-      ['wDisc', 'wMat', 'wFrt'].forEach(function (id) { $(id).value = 0; }); recalc();
     });
     $('btnSave').addEventListener('click', save);
     $('btnNew').addEventListener('click', newOrder);
