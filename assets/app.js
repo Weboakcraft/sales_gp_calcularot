@@ -28,16 +28,16 @@
       defaultGstPct: 18
     },
     products: [
-      { sku: 'HURRICANE', name: 'Hurricane', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
-      { sku: 'MATRIX-HB', name: 'Matrix HB', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
-      { sku: 'MATRIX-MB', name: 'Matrix MB', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
-      { sku: '01', name: '01', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
-      { sku: '15-NO', name: '15 No.', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
-      { sku: 'BUTTERFLY', name: 'Butterfly', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
-      { sku: 'ROBO', name: 'Robo', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
-      { sku: 'PEARS', name: 'Pears', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
-      { sku: '07', name: '07', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 },
-      { sku: 'BOOM', name: 'Boom', listPrice: 0, cStandard: 0, cPacking: 0, cFreight: 0 }
+      { sku: 'HURRICANE', name: 'Hurricane', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
+      { sku: 'MATRIX-HB', name: 'Matrix HB', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
+      { sku: 'MATRIX-MB', name: 'Matrix MB', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
+      { sku: '01', name: '01', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
+      { sku: '15-NO', name: '15 No.', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
+      { sku: 'BUTTERFLY', name: 'Butterfly', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
+      { sku: 'ROBO', name: 'Robo', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
+      { sku: 'PEARS', name: 'Pears', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
+      { sku: '07', name: '07', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
+      { sku: 'BOOM', name: 'Boom', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 }
     ],
     customers: [],
     approvalMatrix: E.defaultApprovalMatrix
@@ -47,40 +47,13 @@
   var NUMCOLS = [
     ['qty', 'w-xs', 1], ['listPrice', 'w-m', 0], ['discPct', 'w-xs', 0]
   ];
-  var COSTCOLS = ['cStandard', 'cPacking', 'cFreight'];
+  var COSTCOLS = ['cArmrest', 'cSeatMech', 'cBase', 'cWheels'];
   var rowSeq = 0;
 
   function modelOptions(sel) {
     return '<option value="">Pick a model</option>' + MASTERS.products.map(function (p) {
       return '<option' + (p.name === sel ? ' selected' : '') + '>' + esc(p.name) + '</option>';
     }).join('');
-  }
-
-  function custRowsOf(id) {
-    return [].slice.call($('lineBody').querySelectorAll('tr.cust[data-parent="' + id + '"]'));
-  }
-
-  function makeCustRow(id, seed) {
-    var d = seed || {};
-    var tr = document.createElement('tr');
-    tr.className = 'cust';
-    tr.dataset.parent = id;
-    tr.innerHTML =
-      '<td colspan="5" class="l"><span class="cust-tag">Customisation</span>' +
-      '<input class="w-l" data-k="desc" value="' + esc(d.desc || '') +
-      '" placeholder="What changed — e.g. adjustable armrest"></td>' +
-      '<td></td>' +
-      '<td><input type="number" class="w-s" data-k="rate" step="any" value="' + (d.rate || 0) + '"></td>' +
-      '<td colspan="7"><button class="x-btn" title="Remove this customisation" aria-label="Remove customisation">×</button></td>';
-    tr.querySelector('.x-btn').addEventListener('click', function () { tr.remove(); recalc(); });
-    return tr;
-  }
-
-  function addCustRow(tr, seed) {
-    var id = tr.dataset.id;
-    var rows = custRowsOf(id);
-    var after = rows.length ? rows[rows.length - 1] : tr;
-    after.parentNode.insertBefore(makeCustRow(id, seed), after.nextSibling);
   }
 
   function makeRow(seed) {
@@ -98,28 +71,23 @@
     });
     cells.push('<td class="cell-out" data-out="netValue">—</td>');
 
-    cells.push('<td><input type="number" class="w-s" data-k="cStandard" step="any" min="0" value="' + (d.cStandard || 0) + '"></td>');
-    cells.push('<td class="cell-out" data-out="custTotal">—</td>');
-    cells.push('<td><input type="number" class="w-s" data-k="cPacking" step="any" min="0" value="' + (d.cPacking || 0) + '"></td>');
-    cells.push('<td><input type="number" class="w-s" data-k="cFreight" step="any" min="0" value="' + (d.cFreight || 0) + '"></td>');
+    COSTCOLS.forEach(function (k) {
+      cells.push('<td><input type="number" class="w-s" data-k="' + k + '" step="any" min="0" value="' + (d[k] || 0) + '"></td>');
+    });
 
     cells.push('<td class="cell-out" data-out="unitCogs">—</td>');
     cells.push('<td class="cell-out" data-out="cogs">—</td>');
     cells.push('<td class="cell-out" data-out="gp">—</td>');
     cells.push('<td class="cell-out" data-out="gpPct">—</td>');
-    cells.push('<td class="row-acts">' +
-      '<button class="add-btn" title="Add a customisation" aria-label="Add customisation">+</button>' +
-      '<button class="x-btn" title="Remove this line" aria-label="Remove line">×</button></td>');
+    cells.push('<td><button class="x-btn" title="Remove this line" aria-label="Remove line">×</button></td>');
 
     tr.innerHTML = cells.join('');
     tr.dataset.sku = d.sku || '';
     tr.querySelector('.x-btn').addEventListener('click', function () {
-      custRowsOf(tr.dataset.id).forEach(function (c) { c.remove(); });
       tr.remove();
       if (!$('lineBody').querySelector('tr.line')) addLine();
       recalc();
     });
-    tr.querySelector('.add-btn').addEventListener('click', function () { addCustRow(tr); recalc(); });
 
     // model master autofill — standard rate, packing and freight for that model
     var modelSel = tr.querySelector('[data-k=model]');
@@ -133,21 +101,12 @@
       });
       recalc();
     });
-    (d.customs || []).forEach(function (c) { addCustRowLater(tr, c); });
     return tr;
-  }
-
-  // customisation rows can only be inserted once the line row is in the table
-  var pending = [];
-  function addCustRowLater(tr, c) { pending.push([tr, c]); }
-  function flushCustRows() {
-    pending.forEach(function (x) { addCustRow(x[0], x[1]); });
-    pending = [];
   }
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
 
-  function addLine(seed) { $('lineBody').appendChild(makeRow(seed)); flushCustRows(); }
+  function addLine(seed) { $('lineBody').appendChild(makeRow(seed)); }
 
   /* ---------- read the whole form into an order object ------------------- */
   function v(id) { var el = $(id); return el ? el.value : ''; }
@@ -162,13 +121,6 @@
       [].forEach.call(tr.querySelectorAll('[data-k]'), function (el) {
         o[el.dataset.k] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
       });
-      o.customs = custRowsOf(tr.dataset.id).map(function (cr) {
-        return {
-          desc: cr.querySelector('[data-k=desc]').value,
-          rate: parseFloat(cr.querySelector('[data-k=rate]').value) || 0
-        };
-      });
-      o.cCustom = o.customs.reduce(function (a, c) { return a + c.rate; }, 0);
       o.description = o.model;
       return o;
     });
@@ -220,7 +172,6 @@
       var r = R.lines[i]; if (!r) return;
       var put = function (k, txt) { var c = tr.querySelector('[data-out=' + k + ']'); if (c) c.textContent = txt; };
       put('netValue', money(r.netRevenue));
-      put('custTotal', r.unitCustom ? money(r.unitCustom) : '—');
       put('unitCogs', money(r.unitCogs));
       put('cogs', money(r.cogs));
       put('gp', money(r.gp));
@@ -233,7 +184,6 @@
 
     /* footers */
     $('ftQty').textContent = inr.format(T.qty);
-    $('ftCust').textContent = money(T.customisation);
     $('ftGross').textContent = money(T.grossValue);
     $('ftDisc').textContent = money(T.totalDiscount) + ' (' + pc(T.discountPct) + ')';
 
@@ -355,9 +305,8 @@
           orderId: order.meta.orderId, lineNo: i + 1, sku: l.sku, description: l.description,
           qty: l.qty, listPrice: l.listPrice, discPct: l.discPct,
           netValue: r.netRevenue, unitNetPrice: r.unitNetPrice,
-          model: l.model, cStandard: l.cStandard, cCustom: l.cCustom,
-          customisationDetail: (l.customs || []).map(function (c) { return c.desc + ' ' + c.rate; }).join('; '),
-          cPacking: l.cPacking, cFreight: l.cFreight,
+          model: l.model, cArmrest: l.cArmrest, cSeatMech: l.cSeatMech,
+          cBase: l.cBase, cWheels: l.cWheels,
           unitCost: r.unitCogs, totalCost: r.cogs, lineGP: r.gp, lineGPPct: r.gpPct,
           gstPct: l.gstPct, gstAmount: r.gstAmt
         };
@@ -489,9 +438,6 @@
       var last = rows[rows.length - 1], seed = { sku: last.dataset.sku };
       [].forEach.call(last.querySelectorAll('[data-k]'), function (el) {
         seed[el.dataset.k] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
-      });
-      seed.customs = custRowsOf(last.dataset.id).map(function (cr) {
-        return { desc: cr.querySelector('[data-k=desc]').value, rate: parseFloat(cr.querySelector('[data-k=rate]').value) || 0 };
       });
       addLine(seed); recalc();
     });

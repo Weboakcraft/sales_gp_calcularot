@@ -27,10 +27,8 @@
     var netRev = gross - discAmt;
     var unitNet = div(netRev, qty);
 
-    // standard rate for the model, plus whatever was customised, plus packing and
-    // freight — all taken straight, nothing loaded on top
-    var custom = num(l.cCustom);
-    var unitCogs = num(l.cStandard) + custom + num(l.cPacking) + num(l.cFreight);
+    // exactly four costed parts — taken straight, nothing loaded on top
+    var unitCogs = num(l.cArmrest) + num(l.cSeatMech) + num(l.cBase) + num(l.cWheels);
     var cogs = unitCogs * qty;
 
     var gp = netRev - cogs;
@@ -41,10 +39,10 @@
       discountAmt: discAmt,
       netRevenue: netRev,
       unitNetPrice: unitNet,
-      unitStandard: num(l.cStandard),
-      unitCustom: custom,
-      unitPacking: num(l.cPacking),
-      unitFreight: num(l.cFreight),
+      unitArmrest: num(l.cArmrest),
+      unitSeatMech: num(l.cSeatMech),
+      unitBase: num(l.cBase),
+      unitWheels: num(l.cWheels),
       unitCogs: unitCogs,
       cogs: cogs,
       gp: gp,
@@ -77,11 +75,10 @@
 
     /* ---- L1 roll-up ---- */
     var lines = (o.lines || []).map(computeLine);
-    var t = { gross: 0, disc: 0, net: 0, cogs: 0, qty: 0, cbm: 0, weight: 0, gst: 0, maxGst: 0, custom: 0 };
+    var t = { gross: 0, disc: 0, net: 0, cogs: 0, qty: 0, cbm: 0, weight: 0, gst: 0, maxGst: 0 };
     lines.forEach(function (r) {
       t.gross += r.grossValue; t.disc += r.discountAmt; t.net += r.netRevenue;
       t.cogs += r.cogs; t.qty += r.qty; t.cbm += r.cbm; t.weight += r.weight;
-      t.custom += r.unitCustom * r.qty;
       t.gst += r.gstAmt; t.maxGst = Math.max(t.maxGst, r.gstPct);
     });
 
@@ -223,7 +220,7 @@
         grossValue: t.gross, totalDiscount: t.disc, discountPct: div(t.disc, t.gross) * 100,
         productRevenue: t.net, recovery: recovery,
         recFreight: recFreight, recInstall: recInstall, recPacking: recPacking, recOther: recOther,
-        nsv: NSV, qty: t.qty, cbm: t.cbm, weight: t.weight, customisation: t.custom,
+        nsv: NSV, qty: t.qty, cbm: t.cbm, weight: t.weight,
         cogs: t.cogs, cogsPct: div(t.cogs, NSV) * 100,
         grossProfit: grossProfit, grossProfitPct: div(grossProfit, NSV) * 100,
         totL2: totL2, contribution: contribution, contributionPct: div(contribution, NSV) * 100,
@@ -257,7 +254,7 @@
     clone.lines = (clone.lines || []).map(function (l) {
       l.discPct = num(l.discPct) + num(shocks.discountPts);
       var f = 1 + rate(shocks.materialPct);
-      ['cStandard', 'cCustom', 'cPacking', 'cFreight'].forEach(function (k) { l[k] = num(l[k]) * f; });
+      ['cArmrest', 'cSeatMech', 'cBase', 'cWheels'].forEach(function (k) { l[k] = num(l[k]) * f; });
       return l;
     });
     clone.l2 = clone.l2 || {};

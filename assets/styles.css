@@ -133,14 +133,7 @@ table.lines thead tr:last-child th:nth-child(n+18):nth-child(-n+21){min-width:96
   font-size:16px;line-height:1;padding:4px 7px;border-radius:2px}
 .x-btn:hover{color:var(--risk);background:var(--risk-bg)}
 tr.under td{background:var(--risk-bg)}
-.add-btn{border:none;background:none;color:var(--ink-3);cursor:pointer;
-  font-size:16px;line-height:1;padding:4px 7px;border-radius:2px}
-.add-btn:hover{color:var(--brass);background:var(--sunken)}
-.row-acts{white-space:nowrap}
-tr.cust td{background:var(--sunken)}
-tr.cust td:first-child{padding-left:26px}
-.cust-tag{display:inline-block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--ink-3);margin-right:8px;vertical-align:middle}
+
 .lines-foot{display:flex;gap:10px;align-items:center;padding:12px 18px;
   border-top:1px solid var(--rule);background:var(--sunken);flex-wrap:wrap}
 .lines-foot .stat{font-size:12px;color:var(--ink-2);margin-left:auto}
