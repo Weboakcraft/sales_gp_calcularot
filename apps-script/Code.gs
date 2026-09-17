@@ -20,10 +20,9 @@ var ORDER_PREFIX = 'ORD';
 var SCHEMA = {
   Settings: ['Key', 'Value', 'Notes'],
 
-  M_Products: ['SKU', 'Product Name', 'Category', 'UOM', 'List Price', 'Material Cost',
-    'Hardware Cost', 'Fabric/Foam Cost', 'Finishing Cost', 'Labour Cost', 'Packing Cost',
-    'Other Cost', 'Wastage %', 'Inward Freight %', 'CBM per Unit', 'Weight per Unit (kg)',
-    'GST %', 'HSN Code', 'Active'],
+  M_Products: ['SKU', 'Product Name', 'Category', 'UOM', 'List Price', 'Armrest Cost',
+    'Seat Mechanism Cost', 'Base Cost', 'Wheels Cost', 'CBM per Unit',
+    'Weight per Unit (kg)', 'GST %', 'HSN Code', 'Active'],
 
   M_Customers: ['Customer Code', 'Customer Name', 'Customer Type', 'GSTIN', 'State',
     'City', 'Credit Days', 'Default Discount %', 'Sales Commission %', 'Credit Limit',
@@ -49,8 +48,7 @@ var SCHEMA = {
 
   T_OrderLines: ['Order ID', 'Line No', 'SKU', 'Description', 'Category', 'Qty',
     'List Price', 'Discount %', 'Net Line Value', 'Unit Net Price',
-    'Material', 'Hardware', 'Fabric/Foam', 'Finishing', 'Labour', 'Packing', 'Other',
-    'Wastage %', 'Inward Freight %', 'CBM per Unit', 'Weight per Unit',
+    'Armrest', 'Seat Mechanism', 'Base', 'Wheels', 'CBM per Unit', 'Weight per Unit',
     'Unit Cost', 'Total Line Cost', 'Line GP', 'Line GP %', 'GST %', 'GST Amount'],
 
   T_OrderCosts: ['Order ID', 'Level', 'Cost Head', 'Amount', 'Scales With Revenue'],
@@ -74,8 +72,7 @@ var ORDER_KEYS = ['orderId', 'orderDate', 'deliveryDate', 'status', 'salesperson
 
 var LINE_KEYS = ['orderId', 'lineNo', 'sku', 'description', 'category', 'qty',
   'listPrice', 'discPct', 'netValue', 'unitNetPrice',
-  'cMaterial', 'cHardware', 'cUpholstery', 'cFinishing', 'cLabour', 'cPacking', 'cOther',
-  'wastagePct', 'inwardFreightPct', 'cbmPerUnit', 'weightPerUnit',
+  'cArmrest', 'cSeatMech', 'cBase', 'cWheels', 'cbmPerUnit', 'weightPerUnit',
   'unitCost', 'totalCost', 'lineGP', 'lineGPPct', 'gstPct', 'gstAmount'];
 
 var COST_KEYS = ['orderId', 'level', 'head', 'amount', 'scalesWithRevenue'];
@@ -123,8 +120,6 @@ function seedSettings(ss) {
     ['pbgChargePct', 1.5, 'Bank charge on performance guarantees, % p.a.'],
     ['targetGpPct', 20, 'House target gross profit %'],
     ['defaultGstPct', 18, 'Default GST rate on furniture'],
-    ['defaultWastagePct', 4, 'Standard material wastage'],
-    ['defaultInwardPct', 2, 'Inward freight as % of material'],
     ['currency', 'INR', 'Reporting currency']
   ];
   var sh = ss.getSheetByName('Settings');
@@ -151,20 +146,20 @@ function seedApprovalMatrix(ss) {
 
 function seedProducts(ss) {
   var rows = [
-    ['CH-EXE-01', 'Executive high-back chair', 'Office chair', 'Nos', 12000, 3200, 900, 1100, 300, 800, 250, 0, 4, 2, 0.35, 18, 18, '9401', 'Yes'],
-    ['CH-TSK-02', 'Task chair with mesh back', 'Office chair', 'Nos', 6500, 1700, 620, 480, 180, 450, 160, 0, 4, 2, 0.22, 11, 18, '9401', 'Yes'],
-    ['CH-VIS-03', 'Visitor chair, cantilever', 'Office chair', 'Nos', 4200, 1150, 300, 380, 140, 300, 110, 0, 4, 2, 0.18, 8, 18, '9401', 'Yes'],
-    ['SF-3ST-01', 'Three-seater office sofa', 'Sofa', 'Nos', 38000, 9800, 1200, 6400, 900, 3200, 800, 0, 6, 2, 1.6, 62, 18, '9401', 'Yes'],
-    ['SF-RCL-02', 'Single-seat recliner', 'Recliner', 'Nos', 29000, 7400, 3800, 4200, 600, 2600, 650, 0, 5, 2, 0.95, 45, 18, '9401', 'Yes'],
-    ['WS-4ST-01', 'Four-seater linear workstation', 'Workstation', 'Set', 48000, 18000, 2500, 0, 1500, 3000, 900, 200, 5, 2, 1.8, 120, 18, '9403', 'Yes'],
-    ['WS-6ST-02', 'Six-seater cluster workstation', 'Workstation', 'Set', 68000, 25500, 3600, 0, 2100, 4200, 1200, 300, 5, 2, 2.6, 172, 18, '9403', 'Yes'],
-    ['TB-CNF-01', 'Eight-seat conference table', 'Table', 'Nos', 54000, 21000, 2200, 0, 2400, 3400, 1100, 0, 5, 2, 2.2, 140, 18, '9403', 'Yes'],
-    ['TB-EXE-02', 'Executive desk with side unit', 'Table', 'Nos', 32000, 12400, 1800, 0, 1400, 2100, 700, 0, 5, 2, 1.3, 82, 18, '9403', 'Yes'],
-    ['ST-PED-01', 'Three-drawer mobile pedestal', 'Storage', 'Nos', 8500, 3100, 900, 0, 420, 600, 240, 0, 4, 2, 0.28, 24, 18, '9403', 'Yes']
+    ['CH-EXE-01', 'Executive high-back chair', 'Office chair', 'Nos', 12000, 850, 2200, 1650, 700, 0.35, 18, 18, '9401', 'Yes'],
+    ['CH-TSK-02', 'Task chair with mesh back', 'Office chair', 'Nos', 6500, 420, 1150, 780, 380, 0.22, 11, 18, '9401', 'Yes'],
+    ['CH-VIS-03', 'Visitor chair, cantilever', 'Office chair', 'Nos', 4200, 380, 0, 1100, 0, 0.18, 8, 18, '9401', 'Yes'],
+    ['SF-3ST-01', 'Three-seater office sofa', 'Sofa', 'Nos', 38000, 2400, 0, 14500, 0, 1.6, 62, 18, '9401', 'Yes'],
+    ['SF-RCL-02', 'Single-seat recliner', 'Recliner', 'Nos', 29000, 1800, 6200, 6400, 0, 0.95, 45, 18, '9401', 'Yes'],
+    ['WS-4ST-01', 'Four-seater linear workstation', 'Workstation', 'Set', 48000, 0, 0, 25600, 0, 1.8, 120, 18, '9403', 'Yes'],
+    ['WS-6ST-02', 'Six-seater cluster workstation', 'Workstation', 'Set', 68000, 0, 0, 36300, 0, 2.6, 172, 18, '9403', 'Yes'],
+    ['TB-CNF-01', 'Eight-seat conference table', 'Table', 'Nos', 54000, 0, 0, 30500, 0, 2.2, 140, 18, '9403', 'Yes'],
+    ['TB-EXE-02', 'Executive desk with side unit', 'Table', 'Nos', 32000, 0, 0, 18400, 0, 1.3, 82, 18, '9403', 'Yes'],
+    ['ST-PED-01', 'Three-drawer mobile pedestal', 'Storage', 'Nos', 8500, 0, 0, 3900, 420, 0.28, 24, 18, '9403', 'Yes']
   ];
   var sh = ss.getSheetByName('M_Products');
   sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
-  sh.getRange(2, 5, rows.length, 12).setNumberFormat('#,##0.00');
+  sh.getRange(2, 5, rows.length, 7).setNumberFormat('#,##0.00');
   sh.setColumnWidth(2, 230);
   sh.getRange(rows.length + 3, 1).setValue(
     'Edit these rows freely — the calculator loads them as its product master. Keep Active = Yes for anything you still sell.');
@@ -287,15 +282,13 @@ function bootstrap() {
   });
 
   var products = readTable('M_Products')
-    .filter(function (r) { return String(r[18]).toLowerCase() !== 'no'; })
+    .filter(function (r) { return String(r[13]).toLowerCase() !== 'no'; })
     .map(function (r) {
       return {
         sku: r[0], name: r[1], category: r[2], uom: r[3], listPrice: +r[4] || 0,
-        cMaterial: +r[5] || 0, cHardware: +r[6] || 0, cUpholstery: +r[7] || 0,
-        cFinishing: +r[8] || 0, cLabour: +r[9] || 0, cPacking: +r[10] || 0, cOther: +r[11] || 0,
-        wastagePct: +r[12] || 0, inwardFreightPct: +r[13] || 0,
-        cbmPerUnit: +r[14] || 0, weightPerUnit: +r[15] || 0,
-        gstPct: +r[16] || 18, hsn: r[17]
+        cArmrest: +r[5] || 0, cSeatMech: +r[6] || 0, cBase: +r[7] || 0, cWheels: +r[8] || 0,
+        cbmPerUnit: +r[9] || 0, weightPerUnit: +r[10] || 0,
+        gstPct: +r[11] || 18, hsn: r[12]
       };
     });
 
