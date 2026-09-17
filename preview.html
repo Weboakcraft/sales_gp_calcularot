@@ -331,7 +331,6 @@ tr.under td{background:var(--risk-bg)}
               <tr>
                 <th colspan="6" class="grp" style="border-left:none">Sale</th>
                 <th colspan="4" class="grp">Cost per unit</th>
-                <th colspan="2" class="grp">Loading &amp; logistics inputs</th>
                 <th colspan="4" class="grp">Result</th>
                 <th class="grp"></th>
               </tr>
@@ -339,7 +338,6 @@ tr.under td{background:var(--risk-bg)}
                 <th class="l">Product</th><th class="l">Category</th>
                 <th>Qty</th><th>List price</th><th>Disc %</th><th>Net value</th>
                 <th>Armrest</th><th>Seat mechanism</th><th>Base</th><th>Wheels</th>
-                <th>CBM/unit</th><th>Kg/unit</th>
                 <th>Unit cost</th><th>Total cost</th><th>Line GP</th><th>GP %</th>
                 <th></th>
               </tr>
@@ -981,8 +979,13 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
     var tr = document.createElement('tr');
     var cells = [];
 
+    // CBM and weight per unit stay in the model — outward freight can still be
+    // charged per CBM or per kg — but they are no longer shown as columns.
+    var hidden = LOGCOLS.map(function (k) {
+      return '<input type="number" style="display:none" data-k="' + k + '" value="' + (d[k] || 0) + '">';
+    }).join('');
     cells.push('<td><input class="w-l" data-k="description" list="dlProducts" value="' +
-      esc(d.description || '') + '" placeholder="Type or pick a product"></td>');
+      esc(d.description || '') + '" placeholder="Type or pick a product">' + hidden + '</td>');
     cells.push('<td><select class="w-m" data-k="category">' +
       CATEGORIES.map(function (c) { return '<option' + (c === (d.category || 'Office chair') ? ' selected' : '') + '>' + c + '</option>'; }).join('') +
       '</select></td>');
@@ -995,9 +998,6 @@ window.GP_CONFIG = { endpoint: 'PASTE_YOUR_EXEC_URL_HERE', token: '' };
 
     COSTCOLS.forEach(function (k) {
       cells.push('<td><input type="number" class="w-s" data-k="' + k + '" step="any" min="0" value="' + (d[k] || 0) + '"></td>');
-    });
-    LOGCOLS.forEach(function (k) {
-      cells.push('<td><input type="number" class="w-xs" data-k="' + k + '" step="any" min="0" value="' + (d[k] || 0) + '"></td>');
     });
 
     cells.push('<td class="cell-out" data-out="unitCogs">—</td>');
