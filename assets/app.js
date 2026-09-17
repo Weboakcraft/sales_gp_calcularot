@@ -57,8 +57,13 @@
     var tr = document.createElement('tr');
     var cells = [];
 
+    // CBM and weight per unit stay in the model — outward freight can still be
+    // charged per CBM or per kg — but they are no longer shown as columns.
+    var hidden = LOGCOLS.map(function (k) {
+      return '<input type="number" style="display:none" data-k="' + k + '" value="' + (d[k] || 0) + '">';
+    }).join('');
     cells.push('<td><input class="w-l" data-k="description" list="dlProducts" value="' +
-      esc(d.description || '') + '" placeholder="Type or pick a product"></td>');
+      esc(d.description || '') + '" placeholder="Type or pick a product">' + hidden + '</td>');
     cells.push('<td><select class="w-m" data-k="category">' +
       CATEGORIES.map(function (c) { return '<option' + (c === (d.category || 'Office chair') ? ' selected' : '') + '>' + c + '</option>'; }).join('') +
       '</select></td>');
@@ -71,9 +76,6 @@
 
     COSTCOLS.forEach(function (k) {
       cells.push('<td><input type="number" class="w-s" data-k="' + k + '" step="any" min="0" value="' + (d[k] || 0) + '"></td>');
-    });
-    LOGCOLS.forEach(function (k) {
-      cells.push('<td><input type="number" class="w-xs" data-k="' + k + '" step="any" min="0" value="' + (d[k] || 0) + '"></td>');
     });
 
     cells.push('<td class="cell-out" data-out="unitCogs">—</td>');
