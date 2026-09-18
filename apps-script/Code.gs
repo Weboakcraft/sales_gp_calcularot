@@ -20,8 +20,11 @@ var ORDER_PREFIX = 'ORD';
 var SCHEMA = {
   Settings: ['Key', 'Value', 'Notes'],
 
-  M_Products: ['Model Code', 'Model Name', 'UOM', 'Sale Rate', 'Armrest Cost',
-    'Seat Mechanism Cost', 'Base Cost', 'Wheels Cost', 'GST %', 'HSN Code', 'Active'],
+  M_Products: ['Model Code', 'Model Name', 'UOM', 'Sale Rate', 'Standard Armrest',
+    'Standard Seat Mechanism', 'Standard Base', 'Standard Wheels', 'GST %', 'HSN Code',
+    'Active'],
+
+  M_Components: ['Component Type', 'Component Name', 'Rate', 'Active'],
 
   M_Customers: ['Customer Code', 'Customer Name', 'Customer Type', 'GSTIN', 'State',
     'City', 'Credit Days', 'Default Discount %', 'Sales Commission %', 'Credit Limit',
@@ -47,7 +50,8 @@ var SCHEMA = {
 
   T_OrderLines: ['Order ID', 'Line No', 'Model Code', 'Description', 'Qty',
     'Sale Rate', 'Discount %', 'Net Line Value', 'Unit Net Price',
-    'Model', 'Armrest', 'Seat Mechanism', 'Base', 'Wheels',
+    'Model', 'Armrest', 'Armrest Rate', 'Seat Mechanism', 'Seat Mechanism Rate',
+    'Base', 'Base Rate', 'Wheels', 'Wheels Rate',
     'Unit Cost', 'Total Line Cost', 'Line GP', 'Line GP %', 'GST %', 'GST Amount'],
 
   T_OrderCosts: ['Order ID', 'Level', 'Cost Head', 'Amount', 'Scales With Revenue'],
@@ -71,7 +75,8 @@ var ORDER_KEYS = ['orderId', 'orderDate', 'deliveryDate', 'status', 'salesperson
 
 var LINE_KEYS = ['orderId', 'lineNo', 'sku', 'description', 'qty',
   'listPrice', 'discPct', 'netValue', 'unitNetPrice',
-  'model', 'cArmrest', 'cSeatMech', 'cBase', 'cWheels',
+  'model', 'armrestName', 'cArmrest', 'seatMechName', 'cSeatMech',
+  'baseName', 'cBase', 'wheelsName', 'cWheels',
   'unitCost', 'totalCost', 'lineGP', 'lineGPPct', 'gstPct', 'gstAmount'];
 
 var COST_KEYS = ['orderId', 'level', 'head', 'amount', 'scalesWithRevenue'];
@@ -98,6 +103,7 @@ function setupDatabase() {
   seedSettings(ss);
   seedApprovalMatrix(ss);
   seedProducts(ss);
+  seedComponents(ss);
   seedCustomers(ss);
   seedFreight(ss);
   formatOrders(ss);
@@ -143,23 +149,51 @@ function seedApprovalMatrix(ss) {
 
 function seedProducts(ss) {
   var rows = [
-    ['HURRICANE', 'Hurricane', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['MATRIX-HB', 'Matrix HB', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['MATRIX-MB', 'Matrix MB', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['01', '01', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['15-NO', '15 No.', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['BUTTERFLY', 'Butterfly', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['ROBO', 'Robo', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['PEARS', 'Pears', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['07', '07', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes'],
-    ['BOOM', 'Boom', 'Nos', 0, 0, 0, 0, 0, 18, '9401', 'Yes']
+    ['HURRICANE', 'Hurricane', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes'],
+    ['MATRIX-HB', 'Matrix HB', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes'],
+    ['MATRIX-MB', 'Matrix MB', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes'],
+    ['01', '01', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes'],
+    ['15-NO', '15 No.', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes'],
+    ['BUTTERFLY', 'Butterfly', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes'],
+    ['ROBO', 'Robo', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes'],
+    ['PEARS', 'Pears', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes'],
+    ['07', '07', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes'],
+    ['BOOM', 'Boom', 'Nos', 0, '', '', '', '', 18, '9401', 'Yes']
   ];
   var sh = ss.getSheetByName('M_Products');
   sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
-  sh.getRange(2, 4, rows.length, 5).setNumberFormat('#,##0.00');
+  sh.getRange(2, 4, rows.length, 1).setNumberFormat('#,##0.00');
   sh.setColumnWidth(2, 230);
   sh.getRange(rows.length + 3, 1).setValue(
-    'Edit these rows freely — the calculator loads them as its product master. Keep Active = Yes for anything you still sell.');
+    'Edit these rows freely — the calculator loads them as its model master. The four standard columns take a component name from M_Components; leave one blank and that part starts empty on a new line.');
+}
+
+function seedComponents(ss) {
+  var rows = [
+    ['Armrest', 'Without armrest', 0, 'Yes'],
+    ['Armrest', 'Fixed armrest', 0, 'Yes'],
+    ['Armrest', 'Adjustable armrest (1D)', 0, 'Yes'],
+    ['Armrest', 'Adjustable armrest (2D)', 0, 'Yes'],
+    ['Armrest', 'PU armrest', 0, 'Yes'],
+    ['Seat mechanism', 'Fixed', 0, 'Yes'],
+    ['Seat mechanism', 'Butterfly tilt', 0, 'Yes'],
+    ['Seat mechanism', 'Multilock', 0, 'Yes'],
+    ['Seat mechanism', 'Synchro', 0, 'Yes'],
+    ['Base', 'Nylon base', 0, 'Yes'],
+    ['Base', 'Aluminium base', 0, 'Yes'],
+    ['Base', 'MS base', 0, 'Yes'],
+    ['Base', 'Fixed / cantilever', 0, 'Yes'],
+    ['Wheels', 'Nylon castor', 0, 'Yes'],
+    ['Wheels', 'PU castor', 0, 'Yes'],
+    ['Wheels', 'Glides — no wheel', 0, 'Yes']
+  ];
+  var sh = ss.getSheetByName('M_Components');
+  sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+  sh.getRange(2, 3, rows.length, 1).setNumberFormat('#,##0.00');
+  sh.setColumnWidth(2, 230);
+  sh.getRange(rows.length + 3, 1).setValue(
+    'These four types fill the dropdowns in the Armrest, Seat mechanism, Base and Wheels columns. ' +
+    'Component Type must read exactly Armrest, Seat mechanism, Base or Wheels. Add your own rows and rates freely.');
 }
 
 function seedCustomers(ss) {
@@ -283,9 +317,16 @@ function bootstrap() {
     .map(function (r) {
       return {
         sku: r[0], name: r[1], uom: r[2], listPrice: +r[3] || 0,
-        cArmrest: +r[4] || 0, cSeatMech: +r[5] || 0, cBase: +r[6] || 0, cWheels: +r[7] || 0,
+        armrestName: r[4] || '', seatMechName: r[5] || '',
+        baseName: r[6] || '', wheelsName: r[7] || '',
         gstPct: +r[8] || 18, hsn: r[9]
       };
+    });
+
+  var components = readTable('M_Components')
+    .filter(function (r) { return r[1] && String(r[3]).toLowerCase() !== 'no'; })
+    .map(function (r) {
+      return { type: String(r[0]).trim(), name: String(r[1]).trim(), rate: +r[2] || 0 };
     });
 
   var customers = readTable('M_Customers')
@@ -306,8 +347,8 @@ function bootstrap() {
     return { zone: r[0], from: r[1], to: r[2], basis: r[3], rate: +r[4] || 0, min: +r[5] || 0, days: +r[6] || 0 };
   });
 
-  return { settings: settings, products: products, customers: customers,
-           approvalMatrix: approvalMatrix, freightRates: freight };
+  return { settings: settings, products: products, components: components,
+           customers: customers, approvalMatrix: approvalMatrix, freightRates: freight };
 }
 
 function nextOrderId() {
