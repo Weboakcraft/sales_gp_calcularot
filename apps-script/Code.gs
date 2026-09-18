@@ -3,7 +3,9 @@
  * ---------------------------------------------------------------------------
  * 1. Open your Google Sheet  ->  Extensions  ->  Apps Script
  * 2. Paste this file over Code.gs and save
- * 3. Run  setupDatabase()  once. It builds every sheet, header and sample row.
+ * 3. Run  setupDatabase(). Safe to run again any time: it adds what is missing,
+ *    rewrites the header row, deletes columns and sheets this version no longer
+ *    uses, and leaves every row you have already typed alone.
  * 4. Change SHARED_TOKEN below to something only your team knows.
  * 5. Deploy -> New deployment -> Web app
  *      Execute as:  Me
@@ -27,93 +29,137 @@ var SCHEMA = {
   M_Components: ['Component Type', 'Component Name', 'Rate', 'Active'],
 
   M_Customers: ['Customer Code', 'Customer Name', 'Customer Type', 'GSTIN', 'State',
-    'City', 'Credit Days', 'Default Discount %', 'Sales Commission %', 'Credit Limit',
-    'Salesperson', 'Active'],
+    'City', 'Salesperson', 'Active'],
 
   M_ApprovalMatrix: ['Minimum GP %', 'Approval Level', 'Approver', 'Tone (good/watch/risk)'],
 
-  M_FreightRates: ['Zone', 'From State', 'To State', 'Basis (cbm/kg/unit)', 'Rate',
-    'Minimum Charge', 'Transit Days', 'Transporter'],
-
   T_Orders: ['Order ID', 'Order Date', 'Delivery Date', 'Status', 'Salesperson', 'Channel',
     'Customer Name', 'Customer Type', 'Customer GSTIN', 'Delivery State',
-    'Total Qty', 'Total CBM', 'Total Weight (kg)',
-    'Gross Order Value', 'Total Discount', 'Discount %', 'Recovery Billed', 'Net Sales Value',
-    'Production Cost', 'Gross Profit', 'Gross Profit %',
-    'Direct Order Cost', 'Contribution', 'Contribution %',
-    'Commercial Cost', 'Net Contribution', 'Net Contribution %',
-    'Overhead Cost', 'ACTUAL GP', 'ACTUAL GP %', 'GP per Unit', 'Total Cost',
-    'GST Amount', 'Invoice Value', 'GST TDS', 'Income Tax TDS', 'Net Collection',
+    'Total Qty', 'Gross Order Value', 'Total Discount', 'Discount %',
+    'Rate without GST', 'BOM Cost', 'Gross Profit', 'Gross Profit %', 'GP per Unit',
+    'GST Amount', 'Rate with GST',
     'Break-even Value', 'Target GP %', 'Value Needed for Target', 'Price Gap %',
-    'Approval Level', 'Approver', 'Credit Days', 'Interest % p.a.',
+    'Approval Level', 'Approver',
     'Saved At', 'Saved By', 'Input JSON'],
 
-  T_OrderLines: ['Order ID', 'Line No', 'Model Code', 'Description', 'Qty',
+  T_OrderLines: ['Order ID', 'Line No', 'Model Code', 'Model', 'Qty',
     'Sale Rate', 'Discount %', 'Net Line Value', 'Unit Net Price',
-    'Model', 'Armrest', 'Armrest Rate', 'Seat Mechanism', 'Seat Mechanism Rate',
+    'Armrest', 'Armrest Rate', 'Seat Mechanism', 'Seat Mechanism Rate',
     'Base', 'Base Rate', 'Wheels', 'Wheels Rate',
     'Unit Cost', 'Total Line Cost', 'Line GP', 'Line GP %', 'GST %', 'GST Amount'],
 
-  T_OrderCosts: ['Order ID', 'Level', 'Cost Head', 'Amount', 'Scales With Revenue'],
-
-  Sys_AuditLog: ['Timestamp', 'User', 'Action', 'Order ID', 'Actual GP', 'Actual GP %',
+  Sys_AuditLog: ['Timestamp', 'User', 'Action', 'Order ID', 'Gross Profit', 'Gross Profit %',
     'Approval Level', 'Detail']
 };
+
+/* Sheets earlier versions of this calculator created and this one no longer
+   uses. setupDatabase() deletes these outright. */
+var OBSOLETE_SHEETS = ['M_FreightRates', 'T_OrderCosts'];
 
 /* order of keys written into T_Orders — index-matched to the header above */
 var ORDER_KEYS = ['orderId', 'orderDate', 'deliveryDate', 'status', 'salesperson', 'channel',
   'customerName', 'customerType', 'customerGstin', 'customerState',
-  'totalQty', 'totalCbm', 'totalWeight',
-  'grossValue', 'totalDiscount', 'discountPct', 'recoveryBilled', 'netSalesValue',
-  'productionCost', 'grossProfit', 'grossProfitPct',
-  'directCost', 'contribution', 'contributionPct',
-  'commercialCost', 'netContribution', 'netContributionPct',
-  'overheadCost', 'actualGP', 'actualGPPct', 'gpPerUnit', 'totalCost',
-  'gstAmount', 'invoiceValue', 'gstTds', 'incomeTds', 'netCollection',
+  'totalQty', 'grossValue', 'totalDiscount', 'discountPct',
+  'netSalesValue', 'productionCost', 'grossProfit', 'grossProfitPct', 'gpPerUnit',
+  'gstAmount', 'invoiceValue',
   'breakEvenValue', 'targetGpPct', 'requiredValueForTarget', 'priceGapPct',
-  'approvalLevel', 'approvedBy', 'creditDays', 'interestPct'];
+  'approvalLevel', 'approvedBy'];
 
-var LINE_KEYS = ['orderId', 'lineNo', 'sku', 'description', 'qty',
+var LINE_KEYS = ['orderId', 'lineNo', 'sku', 'model', 'qty',
   'listPrice', 'discPct', 'netValue', 'unitNetPrice',
-  'model', 'armrestName', 'cArmrest', 'seatMechName', 'cSeatMech',
+  'armrestName', 'cArmrest', 'seatMechName', 'cSeatMech',
   'baseName', 'cBase', 'wheelsName', 'cWheels',
   'unitCost', 'totalCost', 'lineGP', 'lineGPPct', 'gstPct', 'gstAmount'];
-
-var COST_KEYS = ['orderId', 'level', 'head', 'amount', 'scalesWithRevenue'];
 
 /* ===========================================================================
    ONE-TIME SETUP
    =========================================================================== */
 function setupDatabase() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var removed = [], created = [], trimmed = [], widened = [], seeded = [], untouched = [];
 
+  /* 1 — sheets this version no longer uses go away */
+  OBSOLETE_SHEETS.forEach(function (name) {
+    var sh = ss.getSheetByName(name);
+    if (sh) { ss.deleteSheet(sh); removed.push(name); }
+  });
+
+  /* 2 — every sheet in SCHEMA: present, correct headers, no stray columns.
+         Rows you have already typed are left exactly where they are. */
   Object.keys(SCHEMA).forEach(function (name) {
-    var sh = ss.getSheetByName(name) || ss.insertSheet(name);
     var headers = SCHEMA[name];
-    sh.clear();
+    var sh = ss.getSheetByName(name);
+    if (!sh) { sh = ss.insertSheet(name); created.push(name); }
+
+    var have = sh.getMaxColumns();
+    if (have > headers.length) {
+      sh.deleteColumns(headers.length + 1, have - headers.length);
+      trimmed.push(name + ' (−' + (have - headers.length) + ')');
+    } else if (have < headers.length) {
+      sh.insertColumnsAfter(have, headers.length - have);
+      widened.push(name);
+    }
+
     sh.getRange(1, 1, 1, headers.length).setValues([headers])
       .setFontWeight('bold').setFontFamily('Arial').setFontSize(10)
       .setBackground('#231F1A').setFontColor('#F2EDE4')
       .setVerticalAlignment('middle').setWrap(true);
     sh.setFrozenRows(1);
     sh.setRowHeight(1, 38);
-    sh.getRange(1, 1, sh.getMaxRows(), headers.length).setFontFamily('Arial');
   });
 
-  seedSettings(ss);
-  seedApprovalMatrix(ss);
-  seedProducts(ss);
-  seedComponents(ss);
-  seedCustomers(ss);
-  seedFreight(ss);
+  /* 3 — seed only what is still empty, so your own rows are never overwritten */
+  var seeders = {
+    Settings: seedSettings, M_ApprovalMatrix: seedApprovalMatrix,
+    M_Products: seedProducts, M_Components: seedComponents, M_Customers: seedCustomers
+  };
+  Object.keys(seeders).forEach(function (name) {
+    if (ss.getSheetByName(name).getLastRow() < 2) { seeders[name](ss); seeded.push(name); }
+    else untouched.push(name);
+  });
+
   formatOrders(ss);
 
-  var first = ss.getSheetByName('Settings');
-  ss.setActiveSheet(first);
-  SpreadsheetApp.getUi().alert(
-    'Database ready.\n\n' + Object.keys(SCHEMA).length + ' sheets created with headers, ' +
-    'sample master data and formatting.\n\nNext: Deploy > New deployment > Web app, then paste the /exec URL into the calculator.'
-  );
+  /* 4 — anything else in this file is yours; say so rather than deleting it */
+  var mine = Object.keys(SCHEMA);
+  var strangers = ss.getSheets().map(function (sh) { return sh.getName(); })
+    .filter(function (n) { return mine.indexOf(n) < 0; });
+
+  ss.setActiveSheet(ss.getSheetByName('Settings'));
+
+  var lines = ['Database is up to date. ' + mine.length + ' sheets in use.'];
+  if (removed.length) lines.push('\nDeleted (no longer used): ' + removed.join(', '));
+  if (created.length) lines.push('\nCreated: ' + created.join(', '));
+  if (trimmed.length) lines.push('\nExtra columns removed from: ' + trimmed.join(', '));
+  if (widened.length) lines.push('\nColumns added to: ' + widened.join(', '));
+  if (seeded.length) lines.push('\nSample rows written to: ' + seeded.join(', '));
+  if (untouched.length) lines.push('\nAlready had data, left alone: ' + untouched.join(', '));
+  if (strangers.length) lines.push('\nNot part of the calculator, left alone: ' + strangers.join(', '));
+  if (untouched.length) lines.push('\n\nA master that already had rows keeps them as they were. ' +
+             'If those rows came from an older version, check they still sit under the right ' +
+             'headers before quoting from them.');
+  lines.push('\n\nOld orders saved under the previous column layout will not line up with the ' +
+             'new headers. Run clearTransactions() if you want T_Orders, T_OrderLines and ' +
+             'Sys_AuditLog emptied.');
+  SpreadsheetApp.getUi().alert(lines.join(''));
+}
+
+/* Empties the three transaction sheets and leaves every master untouched.
+   Run this only when you want the saved order history gone for good. */
+function clearTransactions() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+  var answer = ui.alert('Delete all saved orders?',
+    'T_Orders, T_OrderLines and Sys_AuditLog will be emptied. Masters are not touched. ' +
+    'This cannot be undone.', ui.ButtonSet.YES_NO);
+  if (answer !== ui.Button.YES) return;
+
+  ['T_Orders', 'T_OrderLines', 'Sys_AuditLog'].forEach(function (name) {
+    var sh = ss.getSheetByName(name);
+    if (sh && sh.getLastRow() > 1) sh.deleteRows(2, sh.getLastRow() - 1);
+  });
+  formatOrders(ss);
+  ui.alert('Saved orders cleared.');
 }
 
 function seedSettings(ss) {
@@ -198,9 +244,9 @@ function seedComponents(ss) {
 
 function seedCustomers(ss) {
   var rows = [
-    ['CUST-001', 'Example Corporate Buyer Pvt Ltd', 'Corporate', '09ABCDE1234F1Z5', 'Uttar Pradesh', 'Noida', 45, 12, 2, 2000000, 'Rahul', 'Yes'],
-    ['CUST-002', 'Example Dealer & Sons', 'Dealer', '07FGHIJ5678K2Z9', 'Delhi', 'New Delhi', 30, 25, 0, 1000000, 'Priya', 'Yes'],
-    ['CUST-003', 'State Public Works Department', 'Government / GeM', '', 'Uttar Pradesh', 'Lucknow', 90, 5, 0, 5000000, 'Rahul', 'Yes']
+    ['CUST-001', 'Example Corporate Buyer Pvt Ltd', 'Corporate', '09ABCDE1234F1Z5', 'Uttar Pradesh', 'Noida', 'Rahul', 'Yes'],
+    ['CUST-002', 'Example Dealer & Sons', 'Dealer', '07FGHIJ5678K2Z9', 'Delhi', 'New Delhi', 'Priya', 'Yes'],
+    ['CUST-003', 'State Public Works Department', 'Government / GeM', '', 'Uttar Pradesh', 'Lucknow', 'Rahul', 'Yes']
   ];
   var sh = ss.getSheetByName('M_Customers');
   sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
@@ -208,30 +254,19 @@ function seedCustomers(ss) {
   sh.getRange(rows.length + 3, 1).setValue('Replace these three sample rows with your real customers.');
 }
 
-function seedFreight(ss) {
-  var rows = [
-    ['North', 'Uttar Pradesh', 'Delhi NCR', 'cbm', 1100, 3000, 2, 'Local fleet'],
-    ['North', 'Uttar Pradesh', 'Punjab', 'cbm', 1400, 4000, 3, 'Partner transporter'],
-    ['West', 'Uttar Pradesh', 'Maharashtra', 'cbm', 2100, 8000, 5, 'Partner transporter'],
-    ['South', 'Uttar Pradesh', 'Karnataka', 'cbm', 2400, 9000, 6, 'Partner transporter'],
-    ['East', 'Uttar Pradesh', 'West Bengal', 'cbm', 1900, 7000, 5, 'Partner transporter']
-  ];
-  var sh = ss.getSheetByName('M_FreightRates');
-  sh.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
-  sh.getRange(rows.length + 3, 1).setValue(
-    'Reference rates for quoting. Look up the row that matches the delivery state and type the rate into the calculator.');
-}
-
 function formatOrders(ss) {
   var sh = ss.getSheetByName('T_Orders');
   var last = sh.getMaxRows() - 1;
-  var money = [14, 15, 17, 18, 19, 20, 22, 23, 25, 26, 28, 29, 31, 32, 33, 34, 35, 36, 37, 38, 40];
-  money.forEach(function (c) { sh.getRange(2, c, last, 1).setNumberFormat('#,##0;(#,##0);-'); });
-  [16, 21, 24, 27, 30, 39, 41].forEach(function (c) {
+  // 12 Gross · 13 Discount · 15 Rate without GST · 16 BOM cost · 17 GP · 19 GP/unit
+  // 20 GST · 21 Rate with GST · 22 Break-even · 24 Value needed
+  [12, 13, 15, 16, 17, 19, 20, 21, 22, 24].forEach(function (c) {
+    sh.getRange(2, c, last, 1).setNumberFormat('#,##0;(#,##0);-');
+  });
+  [14, 18, 23, 25].forEach(function (c) {
     sh.getRange(2, c, last, 1).setNumberFormat('0.0"%";(0.0"%");-');
   });
-  // colour the ACTUAL GP % column by health
-  var gpPct = sh.getRange(2, 30, last, 1);
+  // colour the Gross Profit % column by health
+  var gpPct = sh.getRange(2, 18, last, 1);
   var rules = [
     SpreadsheetApp.newConditionalFormatRule().whenNumberGreaterThanOrEqualTo(18)
       .setBackground('#E4F0E8').setFontColor('#1E7A4C').setRanges([gpPct]).build(),
@@ -241,7 +276,7 @@ function formatOrders(ss) {
       .setBackground('#F9E5E3').setFontColor('#AE2B22').setRanges([gpPct]).build()
   ];
   sh.setConditionalFormatRules(rules);
-  sh.hideColumns(48); // Input JSON — machine use only
+  sh.hideColumns(SCHEMA.T_Orders.length); // Input JSON — machine use only
 }
 
 /* ===========================================================================
@@ -330,12 +365,11 @@ function bootstrap() {
     });
 
   var customers = readTable('M_Customers')
-    .filter(function (r) { return String(r[11]).toLowerCase() !== 'no'; })
+    .filter(function (r) { return String(r[7]).toLowerCase() !== 'no'; })
     .map(function (r) {
       return {
-        code: r[0], name: r[1], type: r[2], gstin: r[3], state: r[4], city: r[5],
-        creditDays: +r[6] || 0, defaultDiscountPct: +r[7] || 0,
-        commissionPct: +r[8] || 0, salesperson: r[10]
+        code: r[0], name: r[1], type: r[2], gstin: r[3],
+        state: r[4], city: r[5], salesperson: r[6]
       };
     });
 
@@ -343,12 +377,8 @@ function bootstrap() {
     return { minPct: +r[0], level: r[1], who: r[2], tone: String(r[3] || 'watch') };
   }).sort(function (a, b) { return b.minPct - a.minPct; });
 
-  var freight = readTable('M_FreightRates').map(function (r) {
-    return { zone: r[0], from: r[1], to: r[2], basis: r[3], rate: +r[4] || 0, min: +r[5] || 0, days: +r[6] || 0 };
-  });
-
   return { settings: settings, products: products, components: components,
-           customers: customers, approvalMatrix: approvalMatrix, freightRates: freight };
+           customers: customers, approvalMatrix: approvalMatrix };
 }
 
 function nextOrderId() {
@@ -408,20 +438,10 @@ function saveOrder(b) {
     shL.getRange(shL.getLastRow() + 1, 1, lrows.length, LINE_KEYS.length).setValues(lrows);
   }
 
-  /* --- cost heads (replace) --- */
-  var shC = sheet('T_OrderCosts');
-  deleteRowsFor(shC, id);
-  if (b.costs && b.costs.length) {
-    var crows = b.costs.map(function (c) {
-      return COST_KEYS.map(function (k) { return c[k] === undefined ? '' : c[k]; });
-    });
-    shC.getRange(shC.getLastRow() + 1, 1, crows.length, COST_KEYS.length).setValues(crows);
-  }
-
   /* --- audit --- */
   sheet('Sys_AuditLog').appendRow([
     now, user, at > 0 ? 'Updated' : 'Created', id,
-    b.order.actualGP, b.order.actualGPPct, b.order.approvalLevel,
+    b.order.grossProfit, b.order.grossProfitPct, b.order.approvalLevel,
     (b.lines || []).length + ' lines · ' + b.order.customerName
   ]);
 
@@ -442,12 +462,18 @@ function getOrder(orderId) {
 
 function listOrders(limit) {
   var rows = readTable('T_Orders');
-  var idx = { id: 0, date: 1, cust: 6, nsv: 17, gp: 28, gpPct: 29, appr: 41 };
+  // positions follow SCHEMA.T_Orders, so they move with it rather than by hand
+  var col = function (title) { return SCHEMA.T_Orders.indexOf(title); };
+  var idx = {
+    id: col('Order ID'), date: col('Order Date'), cust: col('Customer Name'),
+    nsv: col('Rate without GST'), gp: col('Gross Profit'),
+    gpPct: col('Gross Profit %'), appr: col('Approval Level')
+  };
   return rows.slice(-(limit || 100)).reverse().map(function (r) {
     return {
       orderId: r[idx.id], orderDate: r[idx.date], customer: r[idx.cust],
-      netSalesValue: r[idx.nsv], actualGP: r[idx.gp],
-      actualGPPct: r[idx.gpPct], approvalLevel: r[idx.appr]
+      netSalesValue: r[idx.nsv], grossProfit: r[idx.gp],
+      grossProfitPct: r[idx.gpPct], approvalLevel: r[idx.appr]
     };
   });
 }
@@ -457,8 +483,10 @@ function listOrders(limit) {
    =========================================================================== */
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('GP Calculator')
-    .addItem('Set up / reset database', 'setupDatabase')
+    .addItem('Set up / update database', 'setupDatabase')
     .addItem('Issue next order ID', 'showNextId')
+    .addSeparator()
+    .addItem('Clear saved orders', 'clearTransactions')
     .addToUi();
 }
 function showNextId() {
