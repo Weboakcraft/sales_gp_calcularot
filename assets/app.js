@@ -28,16 +28,46 @@
       defaultGstPct: 18
     },
     products: [
-      { sku: 'HURRICANE', name: 'Hurricane', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
-      { sku: 'MATRIX-HB', name: 'Matrix HB', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
-      { sku: 'MATRIX-MB', name: 'Matrix MB', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
-      { sku: '01', name: '01', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
-      { sku: '15-NO', name: '15 No.', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
-      { sku: 'BUTTERFLY', name: 'Butterfly', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
-      { sku: 'ROBO', name: 'Robo', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
-      { sku: 'PEARS', name: 'Pears', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
-      { sku: '07', name: '07', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 },
-      { sku: 'BOOM', name: 'Boom', listPrice: 0, cArmrest: 0, cSeatMech: 0, cBase: 0, cWheels: 0 }
+      { sku: 'HURRICANE', name: 'Hurricane', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' },
+      { sku: 'MATRIX-HB', name: 'Matrix HB', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' },
+      { sku: 'MATRIX-MB', name: 'Matrix MB', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' },
+      { sku: '01', name: '01', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' },
+      { sku: '15-NO', name: '15 No.', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' },
+      { sku: 'BUTTERFLY', name: 'Butterfly', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' },
+      { sku: 'ROBO', name: 'Robo', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' },
+      { sku: 'PEARS', name: 'Pears', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' },
+      { sku: '07', name: '07', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' },
+      { sku: 'BOOM', name: 'Boom', listPrice: 0,
+        armrestName: '', seatMechName: '', baseName: '', wheelsName: '' }
+    ],
+    /* Component options behind the four dropdowns. Names and rates are
+       placeholders — the real list lives in the M_Components sheet. */
+    components: [
+      { type: 'Armrest', name: 'Without armrest', rate: 0 },
+      { type: 'Armrest', name: 'Fixed armrest', rate: 0 },
+      { type: 'Armrest', name: 'Adjustable armrest (1D)', rate: 0 },
+      { type: 'Armrest', name: 'Adjustable armrest (2D)', rate: 0 },
+      { type: 'Armrest', name: 'PU armrest', rate: 0 },
+      { type: 'Seat mechanism', name: 'Fixed', rate: 0 },
+      { type: 'Seat mechanism', name: 'Butterfly tilt', rate: 0 },
+      { type: 'Seat mechanism', name: 'Multilock', rate: 0 },
+      { type: 'Seat mechanism', name: 'Synchro', rate: 0 },
+      { type: 'Base', name: 'Nylon base', rate: 0 },
+      { type: 'Base', name: 'Aluminium base', rate: 0 },
+      { type: 'Base', name: 'MS base', rate: 0 },
+      { type: 'Base', name: 'Fixed / cantilever', rate: 0 },
+      { type: 'Wheels', name: 'Nylon castor', rate: 0 },
+      { type: 'Wheels', name: 'PU castor', rate: 0 },
+      { type: 'Wheels', name: 'Glides — no wheel', rate: 0 }
     ],
     customers: [],
     approvalMatrix: E.defaultApprovalMatrix
@@ -47,7 +77,28 @@
   var NUMCOLS = [
     ['qty', 'w-xs', 1], ['listPrice', 'w-m', 0], ['discPct', 'w-xs', 0]
   ];
-  var COSTCOLS = ['cArmrest', 'cSeatMech', 'cBase', 'cWheels'];
+  // the four costed parts: a dropdown of variants, and the rate that variant carries
+  var PARTS = [
+    { type: 'Armrest', nameKey: 'armrestName', rateKey: 'cArmrest' },
+    { type: 'Seat mechanism', nameKey: 'seatMechName', rateKey: 'cSeatMech' },
+    { type: 'Base', nameKey: 'baseName', rateKey: 'cBase' },
+    { type: 'Wheels', nameKey: 'wheelsName', rateKey: 'cWheels' }
+  ];
+  var COSTCOLS = PARTS.map(function (p) { return p.rateKey; });
+  var NAMECOLS = PARTS.map(function (p) { return p.nameKey; });
+
+  function partOptions(type, sel) {
+    return '<option value="">—</option>' + MASTERS.components
+      .filter(function (c) { return c.type === type; })
+      .map(function (c) {
+        return '<option' + (c.name === sel ? ' selected' : '') + '>' + esc(c.name) + '</option>';
+      }).join('');
+  }
+
+  function partRate(type, name) {
+    var hit = MASTERS.components.find(function (c) { return c.type === type && c.name === name; });
+    return hit ? hit.rate : null;
+  }
   var rowSeq = 0;
 
   function modelOptions(sel) {
@@ -71,8 +122,12 @@
     });
     cells.push('<td class="cell-out" data-out="netValue">—</td>');
 
-    COSTCOLS.forEach(function (k) {
-      cells.push('<td><input type="number" class="w-s" data-k="' + k + '" step="any" min="0" value="' + (d[k] || 0) + '"></td>');
+    PARTS.forEach(function (pt) {
+      cells.push('<td class="part">' +
+        '<select data-k="' + pt.nameKey + '" data-part="' + pt.type + '">' +
+        partOptions(pt.type, d[pt.nameKey]) + '</select>' +
+        '<input type="number" data-k="' + pt.rateKey + '" step="any" min="0" value="' +
+        (d[pt.rateKey] || 0) + '"></td>');
     });
 
     cells.push('<td class="cell-out" data-out="unitCogs">—</td>');
@@ -89,15 +144,30 @@
       recalc();
     });
 
-    // model master autofill — standard rate, packing and freight for that model
+    // pick a variant and its rate comes in from the component master
+    PARTS.forEach(function (pt) {
+      var sel = tr.querySelector('[data-k=' + pt.nameKey + ']');
+      sel.addEventListener('change', function () {
+        var rate = partRate(pt.type, sel.value);
+        if (rate !== null) tr.querySelector('[data-k=' + pt.rateKey + ']').value = rate;
+        recalc();
+      });
+    });
+
+    // model master autofill — the model's standard spec and its rates
     var modelSel = tr.querySelector('[data-k=model]');
     modelSel.addEventListener('change', function () {
       var hit = MASTERS.products.find(function (p) { return p.name === modelSel.value; });
       if (!hit) { tr.dataset.sku = ''; return; }
       tr.dataset.sku = hit.sku;
-      ['listPrice'].concat(COSTCOLS).forEach(function (k) {
+      ['listPrice'].concat(NAMECOLS, COSTCOLS).forEach(function (k) {
         var el = tr.querySelector('[data-k=' + k + ']');
-        if (el && hit[k] !== undefined) el.value = hit[k];
+        if (el && hit[k] !== undefined && hit[k] !== '') el.value = hit[k];
+      });
+      // a model that names its standard parts also takes their rates
+      PARTS.forEach(function (pt) {
+        var rate = partRate(pt.type, tr.querySelector('[data-k=' + pt.nameKey + ']').value);
+        if (rate !== null) tr.querySelector('[data-k=' + pt.rateKey + ']').value = rate;
       });
       recalc();
     });
@@ -305,8 +375,11 @@
           orderId: order.meta.orderId, lineNo: i + 1, sku: l.sku, description: l.description,
           qty: l.qty, listPrice: l.listPrice, discPct: l.discPct,
           netValue: r.netRevenue, unitNetPrice: r.unitNetPrice,
-          model: l.model, cArmrest: l.cArmrest, cSeatMech: l.cSeatMech,
-          cBase: l.cBase, cWheels: l.cWheels,
+          model: l.model,
+          armrestName: l.armrestName, cArmrest: l.cArmrest,
+          seatMechName: l.seatMechName, cSeatMech: l.cSeatMech,
+          baseName: l.baseName, cBase: l.cBase,
+          wheelsName: l.wheelsName, cWheels: l.cWheels,
           unitCost: r.unitCogs, totalCost: r.cogs, lineGP: r.gp, lineGPPct: r.gpPct,
           gstPct: l.gstPct, gstAmount: r.gstAmt
         };
@@ -349,11 +422,15 @@
   function applyMasters(m) {
     if (m.settings) Object.assign(MASTERS.settings, m.settings);
     if (m.products && m.products.length) MASTERS.products = m.products;
+    if (m.components && m.components.length) MASTERS.components = m.components;
     if (m.customers) MASTERS.customers = m.customers;
     if (m.approvalMatrix && m.approvalMatrix.length) MASTERS.approvalMatrix = m.approvalMatrix;
 
     [].forEach.call(document.querySelectorAll('[data-k=model]'), function (sel) {
       sel.innerHTML = modelOptions(sel.value);
+    });
+    [].forEach.call(document.querySelectorAll('[data-part]'), function (sel) {
+      sel.innerHTML = partOptions(sel.dataset.part, sel.value);
     });
     $('dlCustomers').innerHTML = MASTERS.customers.map(function (c) {
       return '<option value="' + esc(c.name) + '">' + esc(c.type || '') + '</option>';
