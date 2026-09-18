@@ -56,8 +56,18 @@ Pears, 07, Boom. Their rates ship as zero — fill them in the `M_Products` shee
 
 ## 2. Google Sheets database structure
 
-Ten sheets. Run `setupDatabase()` once and all of this is created with headers,
-formatting, conditional colour on the GP column, and sample master data.
+Eight sheets. Run `setupDatabase()` and all of this is created with headers, formatting,
+conditional colour on the GP column, and sample master data.
+
+It is safe to run again whenever this file changes. It adds what is missing, rewrites the
+header row, **deletes any column past the last one in the schema and any sheet this version
+no longer uses**, and leaves every row you have typed exactly where it is. A master that
+already holds data is not re-seeded. Sheets of your own that the calculator does not know
+about are left alone and listed in the summary.
+
+`clearTransactions()` — on the **GP Calculator** menu — empties `T_Orders`, `T_OrderLines`
+and `Sys_AuditLog` and touches no master. Use it once after a column change, so old orders
+saved under the previous layout do not sit under the new headers.
 
 ### Masters — you maintain these
 
@@ -83,44 +93,34 @@ Every variant you sell, one row each. `Component Type` must read exactly `Armres
 in. This is the single place a part's rate lives; change it here and every new line picks it
 up.
 
-**`M_Customers`** — 12 columns
-`Customer Code | Customer Name | Customer Type | GSTIN | State | City | Credit Days |
-Default Discount % | Sales Commission % | Credit Limit | Salesperson | Active`
+**`M_Customers`** — 8 columns
+`Customer Code | Customer Name | Customer Type | GSTIN | State | City | Salesperson | Active`
 
 **`M_ApprovalMatrix`** — 4 columns
 `Minimum GP % | Approval Level | Approver | Tone (good/watch/risk)`
 Keep it sorted highest-first. The app takes the first row whose threshold is met.
 Ships as 25 / 18 / 12 / 6 / below → auto-approved, Sales Manager, GM, Director, blocked.
 
-**`M_FreightRates`** — 8 columns
-`Zone | From State | To State | Basis (cbm/kg/unit) | Rate | Minimum Charge | Transit Days | Transporter`
-Reference table for quoting.
-
 ### Transactions — the app writes these
 
-**`T_Orders`** — 48 columns, one row per order, upserted on `Order ID`.
-Identity, customer, volumetrics, then the full ladder: gross value → discount → recovery →
-net sales value → production cost → gross profit → direct cost → contribution → commercial
-cost → net contribution → overhead → **ACTUAL GP** and **ACTUAL GP %** → tax and collection →
-break-even, target, price gap → approval level and approver → `Saved At`, `Saved By`, and a
-hidden `Input JSON` column holding the complete input state so any order reloads exactly.
+**`T_Orders`** — 30 columns, one row per order, upserted on `Order ID`.
+Identity and customer, then the ladder as the app shows it: gross value → discount →
+**Rate without GST** → BOM cost → **Gross Profit** and **Gross Profit %** → GP per unit →
+GST → **Rate with GST** → break-even, target, price gap → approval level and approver →
+`Saved At`, `Saved By`, and a hidden `Input JSON` column holding the complete input state so
+any order reloads exactly.
 
-`ACTUAL GP %` is conditionally coloured: green ≥18, amber 8–18, red below 8. This sheet is
+`Gross Profit %` is conditionally coloured: green ≥18, amber 8–18, red below 8. This sheet is
 analytics-ready as it stands — pivot it by salesperson, customer type, or channel with no
 further preparation.
 
-**`T_OrderLines`** — 22 columns, one row per line, FK `Order ID`, replaced on each save.
+**`T_OrderLines`** — 23 columns, one row per line, FK `Order ID`, replaced on each save.
 Each part is stored as the variant chosen *and* the rate it carried, so you can answer both
 "which armrest do we actually sell" and "what are seat mechanisms costing us across all
 Matrix HB orders" directly.
 
-**`T_OrderCosts`** — 5 columns, long format:
-`Order ID | Level | Cost Head | Amount | Scales With Revenue`
-Long format on purpose. New cost heads never need a schema change, and it pivots cleanly
-into a cost-structure report.
-
 **`Sys_AuditLog`** — 8 columns
-`Timestamp | User | Action | Order ID | Actual GP | Actual GP % | Approval Level | Detail`
+`Timestamp | User | Action | Order ID | Gross Profit | Gross Profit % | Approval Level | Detail`
 Every save, with the Google account that made it. This is the discount-approval trail.
 
 ---
@@ -132,7 +132,7 @@ Every save, with the Google account that made it. This is the discount-approval 
 1. Create a Google Sheet, name it something like `Sales GP Database`.
 2. Extensions → Apps Script. Replace `Code.gs` with `apps-script/Code.gs`.
 3. Change `SHARED_TOKEN` at the top to your own string.
-4. Run `setupDatabase()`. Authorise when prompted. All ten sheets appear.
+4. Run `setupDatabase()`. Authorise when prompted. All eight sheets appear.
 5. Deploy → New deployment → Web app. Execute as **Me**, access **Anyone**. Copy the `/exec` URL.
 
 Opening that URL in a browser should return `{"ok":true,...}`.
@@ -186,8 +186,8 @@ team can quote offline and sync later.
 ## 5. Extending it
 
 - **New cost head:** add the input to `index.html`, read it in `readOrder()` in `app.js`,
-  and push it in the right level inside `compute()` in `engine.js`. `T_OrderCosts` needs no
-  change — long format absorbs it.
+  push it inside `compute()` in `engine.js`, then add the column to `SCHEMA` and the key to
+  `LINE_KEYS`/`ORDER_KEYS` in `Code.gs` and re-run `setupDatabase()`.
 - **After editing anything in `assets/`:** bump the `?v=` number on that tag in `index.html`.
   Browsers cache those files hard, and a half-updated page looks broken in ways the code is
   not responsible for.
