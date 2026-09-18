@@ -354,28 +354,21 @@
         salesperson: order.meta.salesperson, channel: order.meta.channel,
         customerName: order.customer.name, customerType: order.customer.type,
         customerGstin: order.customer.gstin, customerState: order.customer.state,
-        totalQty: T.qty, totalCbm: T.cbm, totalWeight: T.weight,
+        totalQty: T.qty,
         grossValue: T.grossValue, totalDiscount: T.totalDiscount, discountPct: T.discountPct,
-        recoveryBilled: T.recovery, netSalesValue: T.nsv,
-        productionCost: T.cogs, grossProfit: T.grossProfit, grossProfitPct: T.grossProfitPct,
-        directCost: T.totL2, contribution: T.contribution, contributionPct: T.contributionPct,
-        commercialCost: T.totL3, netContribution: T.netContribution, netContributionPct: T.netContributionPct,
-        overheadCost: T.totL4, actualGP: T.actualGP, actualGPPct: T.actualGPPct,
-        gpPerUnit: T.gpPerUnit, totalCost: T.totalCost,
+        netSalesValue: T.nsv, productionCost: T.cogs,
+        grossProfit: T.grossProfit, grossProfitPct: T.grossProfitPct, gpPerUnit: T.gpPerUnit,
         gstAmount: T.gstTotal, invoiceValue: T.invoiceValue,
-        gstTds: T.gstTds, incomeTds: T.incomeTds, netCollection: T.netCollection,
         breakEvenValue: R.solver.breakEvenNSV, targetGpPct: R.solver.targetPct,
         requiredValueForTarget: R.solver.requiredNSV, priceGapPct: R.solver.priceGapPct,
-        approvalLevel: R.verdict.level, approvedBy: R.verdict.who,
-        creditDays: order.l3.creditDays, interestPct: order.l3.interestPct
+        approvalLevel: R.verdict.level, approvedBy: R.verdict.who
       },
       lines: order.lines.map(function (l, i) {
         var r = R.lines[i];
         return {
-          orderId: order.meta.orderId, lineNo: i + 1, sku: l.sku, description: l.description,
+          orderId: order.meta.orderId, lineNo: i + 1, sku: l.sku, model: l.model,
           qty: l.qty, listPrice: l.listPrice, discPct: l.discPct,
           netValue: r.netRevenue, unitNetPrice: r.unitNetPrice,
-          model: l.model,
           armrestName: l.armrestName, cArmrest: l.cArmrest,
           seatMechName: l.seatMechName, cSeatMech: l.cSeatMech,
           baseName: l.baseName, cBase: l.cBase,
@@ -384,11 +377,6 @@
           gstPct: l.gstPct, gstAmount: r.gstAmt
         };
       }),
-      costs: [].concat(
-        R.heads.l2.map(function (h) { return { orderId: order.meta.orderId, level: 2, head: h.label, amount: h.amount, scalesWithRevenue: h.ofRevenue }; }),
-        R.heads.l3.map(function (h) { return { orderId: order.meta.orderId, level: 3, head: h.label, amount: h.amount, scalesWithRevenue: h.ofRevenue }; }),
-        R.heads.l4.map(function (h) { return { orderId: order.meta.orderId, level: 4, head: h.label, amount: h.amount, scalesWithRevenue: h.ofRevenue }; })
-      ),
       inputs: LAST.order
     };
   }
