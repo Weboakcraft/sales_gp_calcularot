@@ -30,10 +30,14 @@ order-direct, commercial and overhead cost heads, and the saved sheet still has 
 them, but the calculator no longer collects any of them, so contribution, net contribution
 and actual GP all equal gross profit.
 
-Pick a model and the cost of its four parts comes in from the master. Nothing else is
-counted and nothing is loaded on top: BOM cost is `armrest + seat mechanism + base + wheels`,
-and gross profit is measured against that. Change a part for a particular customer and you
-type the new figure straight into that line.
+Each of the four parts is a dropdown of the variants you sell — every armrest, every seat
+mechanism, every base, every castor — and picking one brings its rate in from
+`M_Components`. A model carries its standard spec, so choosing the model fills all four
+dropdowns and all four rates at once; change one for a particular customer and only that
+rate moves. Type over a rate and your figure stands.
+
+Nothing else is counted and nothing is loaded on top: BOM cost is
+`armrest + seat mechanism + base + wheels`, and gross profit is measured against that.
 
 The ten models to start with: Hurricane, Matrix HB, Matrix MB, 01, 15 No., Butterfly, Robo,
 Pears, 07, Boom. Their rates ship as zero — fill them in the `M_Products` sheet.
@@ -52,7 +56,7 @@ Pears, 07, Boom. Their rates ship as zero — fill them in the `M_Products` shee
 
 ## 2. Google Sheets database structure
 
-Nine sheets. Run `setupDatabase()` once and all of this is created with headers,
+Ten sheets. Run `setupDatabase()` once and all of this is created with headers,
 formatting, conditional colour on the GP column, and sample master data.
 
 ### Masters — you maintain these
@@ -63,12 +67,21 @@ Eight rows: `companyName`, `orderPrefix`, `orderCounter`, `interestPct`, `pbgCha
 Yellow-filled cells are the ones to edit. `orderCounter` is bumped automatically.
 
 **`M_Products`** — 11 columns
-`Model Code | Model Name | UOM | Sale Rate | Armrest Cost | Seat Mechanism Cost |
-Base Cost | Wheels Cost | GST % | HSN Code | Active`
+`Model Code | Model Name | UOM | Sale Rate | Standard Armrest | Standard Seat Mechanism |
+Standard Base | Standard Wheels | GST % | HSN Code | Active`
 
-This drives the autofill. Pick a model in a line and the sale rate and all four part costs
-populate.
-Set `Active = No` to retire an item without deleting its history.
+The four standard columns hold a **component name** from `M_Components`, not a rate — that
+is the model's normal specification. Pick a model in a line and the sale rate and all four
+parts populate. Leave one blank and that dropdown starts empty.
+Set `Active = No` to retire a model without deleting its history.
+
+**`M_Components`** — 4 columns
+`Component Type | Component Name | Rate | Active`
+
+Every variant you sell, one row each. `Component Type` must read exactly `Armrest`,
+`Seat mechanism`, `Base` or `Wheels` — that is what decides which dropdown the row appears
+in. This is the single place a part's rate lives; change it here and every new line picks it
+up.
 
 **`M_Customers`** — 12 columns
 `Customer Code | Customer Name | Customer Type | GSTIN | State | City | Credit Days |
@@ -96,9 +109,10 @@ hidden `Input JSON` column holding the complete input state so any order reloads
 analytics-ready as it stands — pivot it by salesperson, customer type, or channel with no
 further preparation.
 
-**`T_OrderLines`** — 18 columns, one row per line, FK `Order ID`, replaced on each save.
-Each of the four parts is stored separately rather than as a single COGS figure, so you can
-answer "what are seat mechanisms costing us across all Matrix HB orders" directly.
+**`T_OrderLines`** — 22 columns, one row per line, FK `Order ID`, replaced on each save.
+Each part is stored as the variant chosen *and* the rate it carried, so you can answer both
+"which armrest do we actually sell" and "what are seat mechanisms costing us across all
+Matrix HB orders" directly.
 
 **`T_OrderCosts`** — 5 columns, long format:
 `Order ID | Level | Cost Head | Amount | Scales With Revenue`
@@ -118,7 +132,7 @@ Every save, with the Google account that made it. This is the discount-approval 
 1. Create a Google Sheet, name it something like `Sales GP Database`.
 2. Extensions → Apps Script. Replace `Code.gs` with `apps-script/Code.gs`.
 3. Change `SHARED_TOKEN` at the top to your own string.
-4. Run `setupDatabase()`. Authorise when prompted. All nine sheets appear.
+4. Run `setupDatabase()`. Authorise when prompted. All ten sheets appear.
 5. Deploy → New deployment → Web app. Execute as **Me**, access **Anyone**. Copy the `/exec` URL.
 
 Opening that URL in a browser should return `{"ok":true,...}`.
@@ -159,7 +173,7 @@ Fill top to bottom. The right-hand panel recalculates on every keystroke — the
 is actual GP%, and its colour is the approval verdict.
 
 - **Add line** or **Duplicate last line** for similar items
-- Pick a model to autofill the sale rate and all four part costs from the master
+- Pick a model to autofill the sale rate and its standard four parts; change any dropdown and that rate follows
 - **Ctrl/Cmd + S** saves · **Ctrl/Cmd + Enter** adds a line
 - **Print sheet** produces a clean approval note with the ladder intact
 - **Download JSON** exports the full bundle for email or archive
